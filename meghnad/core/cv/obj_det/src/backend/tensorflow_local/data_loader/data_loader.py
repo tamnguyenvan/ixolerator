@@ -6,23 +6,28 @@ import tensorflow as tf
 from utils import ret_values
 from utils.log import Log
 from .loader_utils import get_tfrecord_dataset
+from ..model_loader.models.ssd.anchors import generate_default_boxes
+from ..model_loader.models.ssd.utils.box_utils import compute_target
 
 log = Log()
 
 
 class DataLoader:
     def __init__(self,
-                 batch_size=1,
+                 batch_size=4,
                  img_size=(300, 300),
-                 label_encoder=None,
-                 train_test_val_split=(0.7, 0.2, 0.1)):
+                 scales=[0.1, 0.2, 0.375, 0.55, 0.725, 0.9, 1.075],
+                 feature_map_sizes=[38, 19, 10, 5, 3, 1],
+                 aspect_ratios=[[2], [2, 3], [2, 3], [2, 3], [2], [2]]):
         self.batch_size = batch_size
         self.img_size = img_size
-        self.label_encoder = label_encoder
-        self.train_test_val_split = train_test_val_split
+        # self.label_encoder = label_encoder
         self.train_dataset = None
         self.validation_dataset = None
         self.test_dataset = None
+
+        self.prior_boxes = generate_default_boxes(
+            scales, feature_map_sizes, aspect_ratios)
 
     def _parse_tf_example(self, tf_example):
         """_summary_
@@ -48,22 +53,27 @@ class DataLoader:
         image_height = parsed_example['image/height']
         image_width = parsed_example['image/width']
         image = tf.reshape(image, (image_height, image_width, 3))
-        image = tf.image.resize(image, self.img_size)
+        image = tf.cast(tf.image.resize(image, self.img_size), tf.float32)
+        image /= 255.0
 
         xmins = tf.sparse.to_dense(parsed_example['image/object/bbox/xmin'])
-        xmaxs = tf.sparse.to_dense(parsed_example['image/object/bbox/xmax'])
         ymins = tf.sparse.to_dense(parsed_example['image/object/bbox/ymin'])
+        xmaxs = tf.sparse.to_dense(parsed_example['image/object/bbox/xmax'])
         ymaxs = tf.sparse.to_dense(parsed_example['image/object/bbox/ymax'])
-        classes = tf.cast(tf.sparse.to_dense(
+        labels = tf.cast(tf.sparse.to_dense(
             parsed_example['image/object/class/label']), tf.int32)
 
         bboxes = tf.stack([
-            xmins * self.img_size[1],
-            ymins * self.img_size[0],
-            (xmaxs - xmins) * self.img_size[1],
-            (ymaxs - ymins) * self.img_size[0]
+            xmins,
+            ymins,
+            xmaxs,
+            ymaxs,
         ], 1)
-        return image, bboxes, classes
+
+        # gt_confs, gt_locs = compute_target(
+        #     self.prior_boxes, bboxes, labels)
+        # return image, gt_confs, gt_locs
+        return image, bboxes, labels
 
     def load_data_from_directory(self, path, augment=False,
                                  rescale=True, rand_flip=False, rotate=False):

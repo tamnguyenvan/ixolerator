@@ -1,11 +1,13 @@
 import sys
+sys.path.append('/home/tamnv/Projects/upwork/ixolerator/')
 from meghnad.core.cv.obj_det.src.backend.tensorflow_local.data_loader.data_loader import *
 from meghnad.core.cv.obj_det.src.backend.tensorflow_local.model_loader.model_loader import *
 from meghnad.core.cv.obj_det.src.backend.tensorflow_local.train.train import *
 from meghnad.core.cv.obj_det.src.backend.tensorflow_local.train.eval import *
 from meghnad.core.cv.obj_det.src.backend.tensorflow_local.inference.pred import *
-from meghnad.core.cv.obj_det.src.backend.tensorflow_local.model_loader.models.ssd.utils.box_utils import LabelEncoder
-from meghnad.core.cv.obj_det.src.backend.tensorflow_local.model_loader.models.ssd.utils.loss_utils import RetinaNetLoss
+from meghnad.core.cv.obj_det.src.backend.tensorflow_local.model_loader.models.ssd.utils.box_utils import encode
+from meghnad.core.cv.obj_det.src.backend.tensorflow_local.model_loader.models.ssd.utils.loss_utils import SSDLoss
+import meghnad.core.cv.obj_det.cfg.config as cfg
 import unittest
 
 
@@ -115,43 +117,56 @@ def test_case8(path):
 
 
 def test_case9(path):
-    label_encoder = LabelEncoder()
-    d_loader = DataLoader(batch_size=4, img_size=(
-        512, 512), label_encoder=label_encoder)
+    config = cfg.ObjDetConfig()
+    model_config = config.get_model_cfg()
+    print(model_config)
+
+    # label_encoder = LabelEncoder()
+    img_size = model_config['input_shape'][:2]
+    d_loader = DataLoader(
+        batch_size=4,
+        img_size=img_size,
+        scales=model_config['scales'],
+        feature_map_sizes=model_config['feature_map_sizes'],
+        aspect_ratios=model_config['aspect_ratios']
+    )
     d_loader.load_data_from_directory(
         path=path, augment=False, rescale=False, rand_flip=False, rotate=False
     )
-    for images, labels, _ in d_loader.train_dataset.take(1):
+    for images, bboxes, labels in d_loader.train_dataset.take(1):
         break
-    from matplotlib import pyplot as plt
-    import cv2
-    img = images[0]
-    img = img.numpy().astype(np.uint8)
-    label = labels[0].numpy().astype(np.int32)
-    print(img.shape)
-    print(labels)
-    for x1, y1, w, h in label:
-        cv2.rectangle(img, (x1, y1), (x1 + w, y1 + h), (0, 255, 0), 2)
-    cv2.imshow('img', img[:, :, ::-1])
-    cv2.waitKey(0)
+    # from matplotlib import pyplot as plt
+    # import cv2
+    # img = images[0] * 255
+    # img = img.numpy().astype(np.uint8)
+    # img_h, img_w = img.shape[:2]
+    # bbox = bboxes[0].numpy()
+    # label = labels[0].numpy()
+    # print(labels.shape)
+    # print(label)
+    # for b in bbox:
+    #     b *= np.array([img_w, img_h, img_w, img_h])
+    #     x1, y1, x2, y2 = list(map(int, b))
+    #     cv2.rectangle(img, (x1, y1), (x2, y2), (0, 255, 0), 2)
+    # cv2.imshow('img', img[:, :, ::-1])
+    # cv2.waitKey(0)
 
-    # num_classes = 2
-    # m_loader = ModelLoader(
-    #     aarch='ResNet50',
-    #     num_classes=num_classes,
-    #     input_shape=(300, 300, 3),
-    #     trainable=True
-    # )
-    # m_loader.load_model()
-    # trainer = ModelTrainer(
-    #     train_dataset=d_loader.train_dataset,
-    #     validation_dataset=d_loader.validation_dataset,
-    #     test_dataset=d_loader.test_dataset,
-    #     model=m_loader.model,
-    #     loss=RetinaNetLoss(num_classes),
-    # )
-    # trainer.compile_model()
-    # ret = trainer.train(epochs=1)
+    m_loader = ModelLoader(
+        aarch=model_config['model'],
+        num_classes=model_config['num_classes'],
+        input_shape=model_config['input_shape'],
+        trainable=model_config['trainable'],
+    )
+    m_loader.load_model()
+    trainer = ModelTrainer(
+        train_dataset=d_loader.train_dataset,
+        validation_dataset=d_loader.validation_dataset,
+        test_dataset=d_loader.test_dataset,
+        model=m_loader.model,
+        loss=SSDLoss(model_config['neg_ratio'], model_config['num_classes'])
+    )
+    trainer.compile_model()
+    ret = trainer.train(epochs=2)
 
 
 def _perform_tests():
