@@ -1,3 +1,5 @@
+from typing import Dict
+
 import albumentations as A
 from utils.common_defs import method_header
 
@@ -22,8 +24,7 @@ transforms_map = {
         ''',
     returns='''
         returns a function that can except 2 params a list and a str for bbox_params''')
-def build_transforms(cfg: dict):
-
+def build_transforms(cfg: Dict) -> A.Compose:
     transform_list = []
     if cfg is not None:
         transform_list = [transforms_map[name](

@@ -1,5 +1,6 @@
 import os
 import sys
+from typing import Optional, Tuple, Union
 
 import cv2
 import numpy as np
@@ -22,7 +23,7 @@ log = Log()
 class TFObjDetPred:
     def __init__(self,
                  saved_dir: str,
-                 output_dir: str = './results'):
+                 output_dir: Optional[str] = './results') -> None:
         self.saved_dir = saved_dir
         self.output_dir = output_dir
         model_params_path = os.path.join(saved_dir, 'metadata.npz')
@@ -41,7 +42,7 @@ class TFObjDetPred:
                 ''',
         returns='''
                 returns image in form of a numpy array and a tuple having height and width''')
-    def _preprocess(self, image: tf.Tensor):
+    def _preprocess(self, image: tf.Tensor) -> Tuple:
         input_height, input_width = self.input_shape[:2]
         h, w = image.shape[:2]
         if h != input_height or w != input_width:
@@ -57,13 +58,17 @@ class TFObjDetPred:
                 input: input is image to the function
                 score_threshold: Score threshold value.
                 nms_threshold: NMS threshold value.
-                max_predictions: Maximum number of predictions per image.''')
+                max_predictions: Maximum number of predictions per image.''',
+        returns='''
+                bboxes: Predicted bounding boxes (N, 4)
+                classes: Predicted classes (N, num_classes)
+                scores: Predicted scores (N)
+        ''')
     def predict(self,
-                input,
+                input: Union[str, np.ndarray],
                 score_threshold: float = 0.4,
                 nms_threshold: float = 0.5,
-                max_predictions: int = 100,
-                ):
+                max_predictions: int = 100) -> Tuple:
         if not self.model:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Model is null")

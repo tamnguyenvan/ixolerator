@@ -1,5 +1,7 @@
 import os
 import json
+from typing import Tuple, Dict
+
 import tensorflow as tf
 from utils.log import Log
 from utils.common_defs import class_header, method_header
@@ -18,14 +20,20 @@ log = Log()
 @class_header(
     description='''
     Data loader for object detection.
+    -----------------------------------
+    Arguments
+      data_path: Path to data root directory.
+      data_cfg: Data config dictionary.
+      model_cfg: Model config dictionary.
+      augmentations: Augmentation dictionary.
     ''')
 class TFObjDetDataLoader:
     def __init__(
             self,
             data_path: str,
-            data_cfg: dict,
-            model_cfg: dict,
-            augmentations):
+            data_cfg: Dict,
+            model_cfg: Dict,
+            augmentations: Dict) -> None:
         self.data_cfg = data_cfg
         self.model_cfg = model_cfg
 
@@ -75,12 +83,11 @@ class TFObjDetDataLoader:
             training: bool,
             image: tf.Tensor,
             bboxes: tf.Tensor,
-            classes: tf.Tensor):
+            classes: tf.Tensor) -> Tuple:
         fn = self.train_transforms if training else self.test_transforms
         data = {'image': image, 'bboxes': bboxes, 'classes': classes}
         aug_data = fn(**data)
         return aug_data['image'], aug_data['bboxes'], aug_data['classes']
-        # return image, bboxes, classes
 
     @method_header(
         description='''
@@ -94,8 +101,8 @@ class TFObjDetDataLoader:
             a integer i.e image_id, image_height and image_with in a tensorflow stack, image and  gt_confs, gt_locs in form of array''')
     def _parse_tf_example(
             self,
-            tf_example,
-            training=True):
+            tf_example: tf.train.Example,
+            training: bool = True) -> Tuple:
 
         example_fmt = {
             'image/id': tf.io.FixedLenFeature([], tf.int64),
@@ -173,7 +180,7 @@ class TFObjDetDataLoader:
             returns train, validation and test_datasets in form of tensors''')
     def _load_data_from_directory(
             self,
-            path: str):
+            path: str) -> Tuple:
         self._config_connectors(path)
         autotune = tf.data.AUTOTUNE
 
@@ -185,8 +192,8 @@ class TFObjDetDataLoader:
 
         # Training set
         train_dataset, self.train_size = self._read_data(self.connector['trn_data_path'],
-                                                        self.connector['trn_file_path'],
-                                                        dataset='train')
+                                                         self.connector['trn_file_path'],
+                                                         dataset='train')
         train_dataset = train_dataset.shuffle(8 * self.batch_size)
         train_dataset = train_dataset.map(
             lambda x: self._parse_tf_example(x, True), num_parallel_calls=autotune,
@@ -200,8 +207,8 @@ class TFObjDetDataLoader:
 
         # Validation set
         validation_dataset, self.val_size = self._read_data(self.connector['val_data_path'],
-                                                           self.connector['val_file_path'],
-                                                           dataset='val')
+                                                            self.connector['val_file_path'],
+                                                            dataset='val')
         validation_dataset = validation_dataset.map(
             lambda x: self._parse_tf_example(x, False), num_parallel_calls=autotune,
         )
@@ -214,8 +221,8 @@ class TFObjDetDataLoader:
 
         # Testing set
         test_dataset, self.test_size = self._read_data(self.connector['test_data_path'],
-                                                      self.connector['test_file_path'],
-                                                      dataset='test')
+                                                       self.connector['test_file_path'],
+                                                       dataset='test')
         test_dataset = test_dataset.map(
             lambda x: self._parse_tf_example(x, False), num_parallel_calls=autotune,
         )
@@ -236,7 +243,7 @@ class TFObjDetDataLoader:
             ''')
     def _config_connectors(
             self,
-            path: str):
+            path: str) -> None:
 
         self.connector = {}
         self.connector['trn_data_path'] = os.path.join(path, 'images')
@@ -264,7 +271,7 @@ class TFObjDetDataLoader:
             self,
             image_dir: str,
             annotation_file: str,
-            dataset='train'):
+            dataset: str = 'train') -> Tuple:
         tfrecord_file = f'{dataset}.tfrecord'
         dataset, num_samples = get_tfrecord_dataset(
             image_dir, annotation_file, tfrecord_file)

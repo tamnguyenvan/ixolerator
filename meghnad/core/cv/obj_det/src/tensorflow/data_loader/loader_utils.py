@@ -1,5 +1,6 @@
 import os
 import json
+from typing import List, Tuple, Dict, Optional
 
 import numpy as np
 import tensorflow as tf
@@ -8,27 +9,27 @@ import tqdm
 from utils.common_defs import method_header
 
 
-def _int64_feature(value):
+def _int64_feature(value: int) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
 
-def _int64_list_feature(value):
+def _int64_list_feature(value: List[int]) -> tf.train.Feature:
     return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
 
 
-def _bytes_feature(value):
+def _bytes_feature(value: bytes) -> tf.train.Feature:
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
 
-def _bytes_list_feature(value):
+def _bytes_list_feature(value: List[bytes]) -> tf.train.Feature:
     return tf.train.Feature(bytes_list=tf.train.BytesList(value=value))
 
 
-def _float_feature(value):
+def _float_feature(value: float) -> tf.train.Feature:
     return tf.train.Feature(float_list=tf.train.FloatList(value=[value]))
 
 
-def _float_list_feature(value):
+def _float_list_feature(value: List[float]) -> tf.train.Feature:
     return tf.train.Feature(float_list=tf.train.FloatList(value=value))
 
 
@@ -42,7 +43,7 @@ def _float_list_feature(value):
         ''',
     returns='''
     a tensor with all image information''')
-def _build_record(image_dir: str, image_info):
+def _build_record(image_dir: str, image_info: Dict) -> tf.train.Example:
 
     image_path = os.path.join(image_dir, image_info['filename'])
     image = open(image_path, 'rb').read()
@@ -86,7 +87,10 @@ def _build_record(image_dir: str, image_info):
         ''',
     returns='''
     returns dataset in form of tensor and number_of_samples in int''')
-def get_tfrecord_dataset(image_dir: str, ann_file, tfrecord_file=None):
+def get_tfrecord_dataset(
+        image_dir: str,
+        ann_file: str,
+        tfrecord_file: Optional[str] = None) -> Tuple:
     if tfrecord_file is None:
         tfrecord_file = 'sample.tfrecord'
 

@@ -1,4 +1,7 @@
+from typing import Optional, Dict
+
 import cv2
+import numpy as np
 import tensorflow as tf
 from utils.common_defs import class_header, method_header
 
@@ -29,21 +32,21 @@ colors = Colors()
 @method_header(
     description='''
         Function to draw bounding boxes to the images''',
-        arguments='''
+    arguments='''
         image: image : input image to the function
         bboxes: pass bboxes to the function to draw bboxes around the objects
         classes: number and type of classes to the function
         scores: show scores on the top of bboxes
         class_map: provides the class_labels and the keys
         ''',
-        returns='''
+    returns='''
         returns an image_clone as an image''')
 def draw_bboxes(
         image: tf.Tensor,
         bboxes: tf.Tensor,
         classes: tf.Tensor,
         scores: tf.Tensor,
-        class_map=None):
+        class_map: Optional[Dict] = None) -> np.ndarray:
     image_clone = image.copy()
     for bbox, cls, score in zip(bboxes, classes, scores):
         x1, y1, x2, y2 = list(map(int, bbox))

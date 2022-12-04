@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 import sys
 
 import tensorflow as tf
@@ -26,7 +26,7 @@ log = Log()
     image_size : tuple, optional
         Input image size, by default (300, 300)
     """)
-def get_backbone(name: str, image_size=(300, 300)) -> Tuple:
+def get_backbone(name: str, image_size: Tuple[int] = (300, 300)) -> Tuple:
 
     if name == 'MobileNetV2':
         return [
@@ -84,14 +84,14 @@ def get_backbone(name: str, image_size=(300, 300)) -> Tuple:
 
 
 @method_header(
-        description='''
+    description='''
         Create extra layers on the backbone model''',
-        arguments='''
+    arguments='''
         backbone : could be any backbone (OD model)
         ''',
-        returns='''
+    returns='''
         model layers''')
-def create_extra_layers(backbone: str):
+def create_extra_layers(backbone: str) -> List[Sequential]:
     if backbone == 'MobileNetV2':
         extra_layers = [
             Sequential([
@@ -332,7 +332,7 @@ def create_extra_layers(backbone: str):
 
 
 @method_header(
-        description='''Creates heads,
+    description='''Creates heads,
         Parameters
         ----------
         backbone : could be any backbone (OD model)
@@ -341,7 +341,7 @@ def create_extra_layers(backbone: str):
         Returns
         -------
         head_layers and loc_head_layers in the form of model layers''')
-def create_heads(backbone: str, num_classes: int, num_anchors: list):
+def create_heads(backbone: str, num_classes: int, num_anchors: List) -> Tuple:
     if backbone == 'MobileNetV2':
         conf_head_layers = []
         loc_head_layers = []

@@ -4,7 +4,7 @@ __all__ = ['Loss']
 
 
 import itertools
-from typing import Any, Optional
+from typing import Any, Tuple, Optional
 
 import tensorflow as tf
 
@@ -43,10 +43,13 @@ _EPSILON = tf.keras.backend.epsilon()
     :class:`tf.Tensor`
         The focal loss for each example.
               ''')
-def sparse_categorical_focal_loss(y_true, y_pred, gamma, *,
-                                  class_weight: Optional[Any] = None,
-                                  from_logits: bool = False, axis: int = -1
-                                  ) -> tf.Tensor:
+def sparse_categorical_focal_loss(
+        y_true: tf.Tensor,
+        y_pred: tf.Tensor,
+        gamma: float, *,
+        class_weight: Optional[Any] = None,
+        from_logits: bool = False,
+        axis: int = -1) -> tf.Tensor:
     # Process focusing parameter
     gamma = tf.convert_to_tensor(gamma, dtype=tf.dtypes.float32)
     gamma_rank = gamma.shape.rank
@@ -201,8 +204,7 @@ class SparseCategoricalFocalLoss(tf.keras.losses.Loss):
         conf_loss: classification loss
         loc_loss: regression loss
     """)
-def hard_negative_mining(loss, gt_confs, neg_ratio):
-
+def hard_negative_mining(loss: tf.Tensor, gt_confs: tf.Tensor, neg_ratio: float):
     pos_idx = gt_confs > 0
     num_pos = tf.reduce_sum(tf.dtypes.cast(pos_idx, tf.int32), axis=1)
     num_neg = num_pos * neg_ratio
@@ -222,8 +224,7 @@ def hard_negative_mining(loss, gt_confs, neg_ratio):
         focal_loss: Use focal loss or not .
     """)
 class Loss(object):
-
-    def __init__(self, neg_ratio, num_classes, focal_loss: bool = False):
+    def __init__(self, neg_ratio: float, num_classes: int, focal_loss: bool = False):
         self.neg_ratio = neg_ratio
         self.num_classes = num_classes
         self.focal_loss = focal_loss
@@ -241,7 +242,11 @@ class Loss(object):
             conf_loss: classification loss
             loc_loss: regression loss
         """)
-    def __call__(self, confs, locs, gt_confs, gt_locs):
+    def __call__(self,
+                 confs: tf.Tensor,
+                 locs: tf.Tensor,
+                 gt_confs: tf.Tensor,
+                 gt_locs: tf.Tensor) -> Tuple[tf.Tensor]:
 
         cross_entropy = tf.keras.losses.SparseCategoricalCrossentropy(
             from_logits=True, reduction='none')
