@@ -1,5 +1,7 @@
-import itertools
 import math
+from typing import List
+
+import itertools
 import tensorflow as tf
 from utils.common_defs import method_header
 
@@ -15,7 +17,10 @@ from utils.common_defs import method_header
         default_boxes: tensor of shape (num_default, 4)
                        with format (cx, cy, w, h)
     """)
-def generate_default_boxes(scales: list, feature_map_sizes: list, aspect_ratios: list):
+def generate_default_boxes(
+        scales: List,
+        feature_map_sizes: List,
+        aspect_ratios: List) -> tf.Tensor:
 
     default_boxes = []
 

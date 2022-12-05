@@ -2,7 +2,7 @@ import time
 import os
 import math
 import sys
-from typing import List, Tuple
+from typing import List, Tuple, Union, Callable, Dict
 
 import numpy as np
 import tensorflow as tf
@@ -56,10 +56,10 @@ def _train_step(
         imgs: tf.Tensor,
         gt_confs: tf.Tensor,
         gt_locs: tf.Tensor,
-        model,
-        criterion,
+        model: tf.keras.Model,
+        criterion: Union[tf.keras.losses.Loss, Callable],
         optimizer: str,
-        weight_decay: float = 1e-5):
+        weight_decay: float = 1e-5) -> Tuple[float]:
 
     with tf.GradientTape() as tape:
         confs, locs = model(imgs)
@@ -128,7 +128,7 @@ class TFObjDetTrn:
                 data_path: location of the training data (should point to the file in case of a single file, should point to
                 the directory in case data exists in multiple files in a directory structure)
                 ''')
-    def config_connectors(self, data_path: str, augmentations: dict = None) -> None:
+    def config_connectors(self, data_path: str, augmentations: Dict = None) -> None:
         self.data_loaders = [TFObjDetDataLoader(data_path, data_cfg, model_cfg, augmentations)
                              for data_cfg, model_cfg in zip(self.data_cfgs, self.model_cfgs)]
 
@@ -148,7 +148,7 @@ class TFObjDetTrn:
               logdir: str = './training_logs',
               resume_path: str = None,
               print_every: int = 10,
-              **hyp) -> int:
+              **hyp) -> Tuple:
         try:
             epochs = int(epochs)
             if epochs <= 0:

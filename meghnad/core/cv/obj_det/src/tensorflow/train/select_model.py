@@ -1,3 +1,5 @@
+from typing import Dict
+
 from meghnad.core.cv.obj_det.src.tensorflow.model_loader import ssd
 from utils.common_defs import class_header
 
@@ -8,7 +10,7 @@ __all__ = ['TFObjDetSelectModel']
     description='''
     Select Model and setup configurations''')
 class TFObjDetSelectModel:
-    def __init__(self, model_configs: dict):
+    def __init__(self, model_configs: Dict):
         self.best_model = None
 
         self.model_configs = model_configs

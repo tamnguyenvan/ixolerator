@@ -1,3 +1,5 @@
+from typing import List
+
 import tensorflow as tf
 from tensorflow.keras import Model
 from meghnad.core.cv.obj_det.src.tensorflow.model_loader.ssd.backbones import get_backbone, create_extra_layers, create_heads
@@ -15,7 +17,7 @@ from utils.common_defs import method_header
         ''',
     returns='''
         model that accepts input of image_size and heads''')
-def ssd(backbone: str, input_shape, num_classes: int, num_anchors: list):
+def ssd(backbone: str, input_shape, num_classes: int, num_anchors: List) -> Model:
     image_size = input_shape[:2]
 
     base_model, feature_names, base_output_name = get_backbone(

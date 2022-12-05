@@ -15,8 +15,14 @@ def test_case1():
 
 def test_case2():
     """Test inference"""
+    settings = ['light']
+    path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset'
+    trainer = TFObjDetTrn(settings=settings)
+    trainer.config_connectors(path)
+    success, best_model_path = trainer.train(epochs=10)
+
     img_path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset\\images\\000a514fb1546570.jpg'
-    predictor = TFObjDetPred(saved_dir='./checkpoints/best_saved_model')
+    predictor = TFObjDetPred(saved_dir=best_model_path)
     ret_value, (boxes, classes, scores) = predictor.predict(img_path)
     print(boxes.shape, classes.shape, scores.shape)
 
@@ -53,6 +59,11 @@ def test_case4():
     trainer.train(
         hyp={'optimizer': 'Adam', 'learning_rate': 1e-4}
     )
+
+
+def test_case5():
+    """Pytorch YOLOv5/v7 data loaders (internal test)"""
+    path = ''
 
 
 def _perform_tests():

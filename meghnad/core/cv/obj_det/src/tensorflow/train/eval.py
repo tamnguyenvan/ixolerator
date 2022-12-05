@@ -2,6 +2,7 @@ import os
 import sys
 import tempfile
 import json
+from typing import Dict, Tuple
 
 import numpy as np
 import tensorflow as tf
@@ -14,6 +15,7 @@ from utils.log import Log
 from utils.common_defs import class_header, method_header
 from meghnad.core.cv.obj_det.src.tensorflow.inference.vis_utils import draw_bboxes
 from meghnad.core.cv.obj_det.src.tensorflow.model_loader.utils import decode, compute_nms
+from meghnad.core.cv.obj_det.src.tensorflow.data_loader import TFObjDetDataLoader
 
 log = Log()
 
@@ -24,7 +26,7 @@ __all__ = ['TFObjDetEval']
     description='''
     Evaluation class to evaluate models after training''')
 class TFObjDetEval:
-    def __init__(self, model):
+    def __init__(self, model: tf.keras.Model):
         self.model = model
 
     @method_header(
@@ -42,15 +44,14 @@ class TFObjDetEval:
         returns='''
                 a 2 value pair map, map50 containing evaluation stats''')
     def eval(self,
-             data_loader,
+             data_loader: TFObjDetDataLoader,
              phase: str = 'validation',
-             class_map: dict = dict(),
+             class_map: Dict = dict(),
              score_threshold: float = 0.4,
              nms_threshold: float = 0.5,
              max_predictions: int = 100,
              image_out_dir: str = './results',
-             draw_predictions: bool = False,
-             ):
+             draw_predictions: bool = False) -> Tuple[float]:
         if self.model is None:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Model is not fitted yet")

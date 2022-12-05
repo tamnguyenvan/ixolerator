@@ -20,6 +20,8 @@ _obj_det_cfg = {
         'EfficientNetV2S',
         'EfficientNetV2M',
         'EfficientNetV2L',
+        'YOLOv5',
+        'YOLOv7'
     },
     'data_cfg':
     {
@@ -144,6 +146,11 @@ _obj_det_cfg = {
                 'learning_rate': 0.0001,
                 'weight_decay': 5e-4
             }
+        },
+        'YOLOv5': {
+        },
+        'YOLOv7': {
+
         }
     },
     'model_settings':
