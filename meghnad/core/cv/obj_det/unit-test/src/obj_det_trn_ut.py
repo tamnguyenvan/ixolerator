@@ -61,6 +61,11 @@ def test_case4():
     )
 
 
+def test_case5():
+    """Pytorch YOLOv5/v7 data loaders (internal test)"""
+    path = ''
+
+
 def _perform_tests():
     test_case1()
 
