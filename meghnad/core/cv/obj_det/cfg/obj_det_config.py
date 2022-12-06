@@ -148,9 +148,10 @@ _obj_det_cfg = {
             }
         },
         'YOLOv5': {
+            'arch': 'yolov5'
         },
         'YOLOv7': {
-
+            'arch': 'yolov7'
         }
     },
     'model_settings':

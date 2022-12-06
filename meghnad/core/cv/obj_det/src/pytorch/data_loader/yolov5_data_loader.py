@@ -1,11 +1,11 @@
 import contextlib
 import glob
 import hashlib
-import json
 import os
 import random
 import shutil
 import logging
+from typing import Dict
 from itertools import repeat
 from multiprocessing.pool import Pool, ThreadPool
 from pathlib import Path
@@ -108,22 +108,22 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 
-def create_dataloader(path,
-                      imgsz,
-                      batch_size,
-                      stride,
-                      single_cls=False,
-                      hyp=None,
-                      augment=False,
-                      cache=False,
-                      pad=0.0,
-                      rect=False,
-                      rank=-1,
-                      workers=8,
-                      image_weights=False,
-                      quad=False,
-                      prefix='',
-                      shuffle=False):
+def create_dataloader(path: str,
+                      imgsz: int,
+                      batch_size: int,
+                      stride: int,
+                      single_cls: bool = False,
+                      hyp: Dict = None,
+                      augment: bool = False,
+                      cache: bool = False,
+                      pad: float = 0.0,
+                      rect: bool = False,
+                      rank: int = -1,
+                      workers: int = 8,
+                      image_weights: bool = False,
+                      quad: bool = False,
+                      prefix: str = '',
+                      shuffle: bool = False):
     if rect and shuffle:
         logging.warning(
             'WARNING ⚠️ --rect is incompatible with DataLoader shuffle, setting shuffle=False')

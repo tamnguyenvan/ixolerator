@@ -66,7 +66,7 @@ def create_dataloader(
         imgsz: Union[List, Tuple, int],
         batch_size: int,
         stride: int,
-        opt: Any,
+        single_cls: bool = False,
         hyp: Dict = None,
         augment: bool = False,
         cache: bool = False,
@@ -85,7 +85,7 @@ def create_dataloader(
                                       hyp=hyp,  # augmentation hyperparameters
                                       rect=rect,  # rectangular training
                                       cache_images=cache,
-                                      single_cls=opt.single_cls,
+                                      single_cls=single_cls,
                                       stride=int(stride),
                                       pad=pad,
                                       image_weights=image_weights,
@@ -286,6 +286,7 @@ class LoadImagesAndLabels(Dataset):  # for training/testing
         cache_path = (p if p.is_file() else Path(
             self.label_files[0]).parent).with_suffix('.cache')  # cached labels
         if cache_path.is_file():
+            print(cache_path)
             cache, exists = torch.load(cache_path), True  # load
             # if cache['hash'] != get_hash(self.label_files + self.img_files) or 'version' not in cache:  # changed
             #    cache, exists = self.cache_labels(cache_path, prefix), False  # re-cache

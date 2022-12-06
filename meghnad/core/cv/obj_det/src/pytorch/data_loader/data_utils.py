@@ -8,6 +8,7 @@ import re
 import subprocess
 import time
 import logging
+import pkg_resources as pkg
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -87,6 +88,19 @@ def check_online():
         return True
     except OSError:
         return False
+
+
+def check_version(current: str = '0.0.0', minimum: str = '0.0.0', name: str = 'version ', pinned: bool = False, hard: bool = False, verbose: bool = False):
+    # Check version vs. required version
+    current, minimum = (pkg.parse_version(x) for x in (current, minimum))
+    result = (current == minimum) if pinned else (current >= minimum)  # bool
+    # string
+    s = f'WARNING ⚠️ {name}{minimum} is required by YOLOv5, but {name}{current} is currently installed'
+    if hard:
+        assert result, emojis(s)  # assert min requirements met
+    if verbose and not result:
+        logging.warning(s)
+    return result
 
 
 def check_git_status():
