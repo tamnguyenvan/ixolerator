@@ -1,6 +1,8 @@
 import unittest
 from meghnad.core.cv.obj_det.src.tensorflow.train import TFObjDetTrn
 from meghnad.core.cv.obj_det.src.tensorflow.inference import TFObjDetPred
+from meghnad.core.cv.obj_det.src.pytorch.data_loader import build_loader
+from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
 
 def test_case1():
@@ -63,11 +65,16 @@ def test_case4():
 
 def test_case5():
     """Pytorch YOLOv5/v7 data loaders (internal test)"""
-    path = ''
+    path = './coco128'
+    cfg = ObjDetConfig()
+    model_cfg = cfg.get_model_cfg('YOLOv7')
+
+    data_loader = build_loader(
+        model_cfg, path=path, imgsz=640, batch_size=4, stride=32)
 
 
 def _perform_tests():
-    test_case1()
+    test_case5()
 
 
 if __name__ == '__main__':
