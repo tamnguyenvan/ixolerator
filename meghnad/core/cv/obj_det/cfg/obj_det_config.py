@@ -148,7 +148,8 @@ _obj_det_cfg = {
             }
         },
         'YOLOv5': {
-            'arch': 'yolov5'
+            'arch': 'yolov5',
+            'img_size': 640
         },
         'YOLOv7': {
             'arch': 'yolov7'
