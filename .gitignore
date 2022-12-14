@@ -3,6 +3,10 @@
 *logs/
 **/saved_models
 **/checkpoints/
+**/runs/
+*.pt
+*.pth
+**/coco128/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

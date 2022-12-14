@@ -11,11 +11,11 @@ import pkg_resources as pkg
 import torch
 from torch.utils.tensorboard import SummaryWriter
 
-from utils.general import LOGGER, colorstr, cv2
-from utils.loggers.clearml.clearml_utils import ClearmlLogger
-from utils.loggers.wandb.wandb_utils import WandbLogger
-from utils.plots import plot_images, plot_labels, plot_results
-from utils.torch_utils import de_parallel
+from meghnad.repo.obj_det.yolov5.utils.general import LOGGER, colorstr, cv2
+from meghnad.repo.obj_det.yolov5.utils.loggers.clearml.clearml_utils import ClearmlLogger
+from meghnad.repo.obj_det.yolov5.utils.loggers.wandb.wandb_utils import WandbLogger
+from meghnad.repo.obj_det.yolov5.utils.plots import plot_images, plot_labels, plot_results
+from meghnad.repo.obj_det.yolov5.utils.torch_utils import de_parallel
 
 LOGGERS = ('csv', 'tb', 'wandb', 'clearml', 'comet')  # *.csv, TensorBoard, Weights & Biases, ClearML
 RANK = int(os.getenv('RANK', -1))
