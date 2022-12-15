@@ -7,20 +7,19 @@ from typing import List, Tuple, Union, Callable, Dict
 import numpy as np
 import tensorflow as tf
 
-from meghnad.core.cv.obj_det.src.pytorch.data_loader import PytorchObjDetDataLoader
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-from meghnad.core.cv.obj_det.src.pytorch.train.select_model import PytorchObjDetSelectModel
 # from meghnad.core.cv.obj_det.src.pytorch.train.eval import PytorchObjDetEval
 # from meghnad.core.cv.obj_det.src.pytorch.train.train_utils import get_optimizer
-from meghnad.core.cv.obj_det.src.pytorch.train.utils import get_train_pipeline
+from meghnad.core.cv.obj_det.src.pytorch.train.utils import get_train_pipeline, get_train_opt
+from meghnad.repo.obj_det.yolov7.utils.general import fitness
 
 
-__all__ = ['TFObjDetTrn']
+__all__ = ['PytorchObjDetTrn']
 
 
 log = Log()
@@ -63,8 +62,7 @@ class PytorchObjDetTrn:
     def __init__(self, settings: List[str]) -> None:
         self.settings = settings
         self.model_cfgs, self.data_cfgs = load_config_from_settings(settings)
-        self.model_selection = PytorchObjDetSelectModel(self.model_cfgs)
-        self.data_loaders = []
+        self.data_path = None
         self.best_model_path = None
 
     @method_header(
@@ -74,9 +72,8 @@ class PytorchObjDetTrn:
                 data_path: location of the training data (should point to the file in case of a single file, should point to
                 the directory in case data exists in multiple files in a directory structure)
                 ''')
-    def config_connectors(self, data_path: str, augmentations: Dict = None) -> None:
-        self.data_loaders = [PytorchObjDetDataLoader(data_path, data_cfg, model_cfg, augmentations)
-                             for data_cfg, model_cfg in zip(self.data_cfgs, self.model_cfgs)]
+    def config_connectors(self, data_path: str) -> None:
+        self.data_path = os.path.abspath(data_path)
 
     @method_header(
         description='''
@@ -89,12 +86,29 @@ class PytorchObjDetTrn:
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
     def train(self,
+              batch_size: int = 16,
               epochs: int = 10,
-              checkpoint_dir: str = './checkpoints',
-              logdir: str = './training_logs',
-              resume_path: str = None,
-              print_every: int = 10,
-              **hyp) -> Tuple:
-        for model_cfg, data_loader in zip(self.model_cfgs, self.data_loaders):
-            train = get_train_pipeline(model_cfg['arch'])
-            train(data_loader)
+              imgsz: int = 640,
+              device: str = '',
+              workers: int = 8) -> Tuple:
+        best_fitness = 0.0
+        best_path = None
+        for model_cfg in self.model_cfgs:
+            train_pipeline = get_train_pipeline(model_cfg['arch'])
+            opt = get_train_opt(
+                model_cfg,
+                epochs=epochs,
+                batch_size=batch_size,
+                data=self.data_path,
+                imgsz=imgsz,
+                device=device,
+                workers=workers
+            )
+
+            print(opt)
+            results, best = train_pipeline(opt)
+            fi = fitness(np.array(results).reshape(1, -1))
+            if fi > best_fitness:
+                best_fitness = fi
+                best_path = best
+        return best_path

@@ -1,6 +1,8 @@
 import unittest
 from meghnad.core.cv.obj_det.src.tensorflow.train import TFObjDetTrn
 from meghnad.core.cv.obj_det.src.tensorflow.inference import TFObjDetPred
+from meghnad.core.cv.obj_det.src.pytorch.train.train import PytorchObjDetTrn
+from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PytorchObjDetPred
 from meghnad.core.cv.obj_det.src.pytorch.data_loader import build_loader
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
@@ -73,8 +75,38 @@ def test_case5():
         model_cfg, path=path, imgsz=640, batch_size=4, stride=32)
 
 
+def test_case6():
+    """Pytorch training pipeline test"""
+    path = './coco128.yml'
+    settings = ['light']
+    trainer = PytorchObjDetTrn(settings)
+    trainer.config_connectors(path)
+    trainer.train(
+        batch_size=1,
+        epochs=10,
+        imgsz=640
+    )
+
+
+def test_case7():
+    """Pytorch testing pipeline test"""
+    path = './coco128.yml'
+    settings = ['light']
+    trainer = PytorchObjDetTrn(settings)
+    trainer.config_connectors(path)
+    best_path = trainer.train(
+        batch_size=1,
+        epochs=2,
+        imgsz=640
+    )
+
+    tester = PytorchObjDetPred(best_path)
+    img_path = './coco128/images/train2017/000000000009.jpg'
+    tester.predict(img_path)
+
+
 def _perform_tests():
-    test_case5()
+    test_case7()
 
 
 if __name__ == '__main__':

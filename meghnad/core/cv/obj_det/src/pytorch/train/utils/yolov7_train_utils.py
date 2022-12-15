@@ -23,6 +23,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 import test  # import test.py to get mAP after each epoch
+from meghnad.core.cv.obj_det.src.pytorch.train.utils.common import get_meghnad_repo_dir
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
 from meghnad.repo.obj_det.yolov7.models.yolo import Model
 from meghnad.repo.obj_det.yolov7.utils.autoanchor import check_anchors
@@ -39,8 +40,8 @@ from meghnad.repo.obj_det.yolov7.utils.wandb_logging.wandb_utils import WandbLog
 logger = logging.getLogger(__name__)
 
 
-def train(opt):
-    hyp, opt, device, tb_writer = _setup_opt(opt)
+def train(opt: object) -> str:
+    hyp, opt, device, tb_writer = _build_opt(opt)
 
     logger.info(colorstr('hyperparameters: ') +
                 ', '.join(f'{k}={v}' for k, v in hyp.items()))
@@ -82,6 +83,8 @@ def train(opt):
             # WandbLogger might update weights, epochs if resuming
             weights, epochs, hyp = opt.weights, opt.epochs, opt.hyp
 
+    if 'nc' not in data_dict:
+        data_dict['nc'] = len(data_dict['names'])
     nc = 1 if opt.single_cls else int(data_dict['nc'])  # number of classes
     names = ['item'] if opt.single_cls and len(
         data_dict['names']) != 1 else data_dict['names']  # class names
@@ -514,7 +517,8 @@ def train(opt):
                         'ema': deepcopy(ema.ema).half(),
                         'updates': ema.updates,
                         'optimizer': optimizer.state_dict(),
-                        'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None}
+                        'wandb_id': wandb_logger.wandb_run.id if wandb_logger.wandb else None,
+                        'img_size': imgsz}
 
                 # Save last, best and delete
                 torch.save(ckpt, last)
@@ -579,10 +583,13 @@ def train(opt):
     else:
         dist.destroy_process_group()
     torch.cuda.empty_cache()
-    return results
+    return results, best
 
 
-def _setup_opt(opt: Dict):
+def _build_opt(opt: Dict):
+    if opt.hyp:
+        opt.hyp = get_meghnad_repo_dir() / 'yolov7' / opt.hyp
+
     # Set DDP variables
     opt.world_size = int(os.environ['WORLD_SIZE']
                          ) if 'WORLD_SIZE' in os.environ else 1
@@ -643,105 +650,3 @@ def _setup_opt(opt: Dict):
             f"{prefix}Start with 'tensorboard --logdir {opt.project}', view at http://localhost:6006/")
         tb_writer = SummaryWriter(opt.save_dir)  # Tensorboard
     return hyp, opt, device, tb_writer
-
-    # # Evolve hyperparameters (optional)
-    # else:
-    #     # Hyperparameter evolution metadata (mutation scale 0-1, lower_limit, upper_limit)
-    #     meta = {'lr0': (1, 1e-5, 1e-1),  # initial learning rate (SGD=1E-2, Adam=1E-3)
-    #             # final OneCycleLR learning rate (lr0 * lrf)
-    #             'lrf': (1, 0.01, 1.0),
-    #             'momentum': (0.3, 0.6, 0.98),  # SGD momentum/Adam beta1
-    #             'weight_decay': (1, 0.0, 0.001),  # optimizer weight decay
-    #             'warmup_epochs': (1, 0.0, 5.0),  # warmup epochs (fractions ok)
-    #             'warmup_momentum': (1, 0.0, 0.95),  # warmup initial momentum
-    #             'warmup_bias_lr': (1, 0.0, 0.2),  # warmup initial bias lr
-    #             'box': (1, 0.02, 0.2),  # box loss gain
-    #             'cls': (1, 0.2, 4.0),  # cls loss gain
-    #             'cls_pw': (1, 0.5, 2.0),  # cls BCELoss positive_weight
-    #             'obj': (1, 0.2, 4.0),  # obj loss gain (scale with pixels)
-    #             'obj_pw': (1, 0.5, 2.0),  # obj BCELoss positive_weight
-    #             'iou_t': (0, 0.1, 0.7),  # IoU training threshold
-    #             'anchor_t': (1, 2.0, 8.0),  # anchor-multiple threshold
-    #             # anchors per output grid (0 to ignore)
-    #             'anchors': (2, 2.0, 10.0),
-    #             # focal loss gamma (efficientDet default gamma=1.5)
-    #             'fl_gamma': (0, 0.0, 2.0),
-    #             # image HSV-Hue augmentation (fraction)
-    #             'hsv_h': (1, 0.0, 0.1),
-    #             # image HSV-Saturation augmentation (fraction)
-    #             'hsv_s': (1, 0.0, 0.9),
-    #             # image HSV-Value augmentation (fraction)
-    #             'hsv_v': (1, 0.0, 0.9),
-    #             'degrees': (1, 0.0, 45.0),  # image rotation (+/- deg)
-    #             'translate': (1, 0.0, 0.9),  # image translation (+/- fraction)
-    #             'scale': (1, 0.0, 0.9),  # image scale (+/- gain)
-    #             'shear': (1, 0.0, 10.0),  # image shear (+/- deg)
-    #             # image perspective (+/- fraction), range 0-0.001
-    #             'perspective': (0, 0.0, 0.001),
-    #             'flipud': (1, 0.0, 1.0),  # image flip up-down (probability)
-    #             'fliplr': (0, 0.0, 1.0),  # image flip left-right (probability)
-    #             'mosaic': (1, 0.0, 1.0),  # image mixup (probability)
-    #             'mixup': (1, 0.0, 1.0),   # image mixup (probability)
-    #             # segment copy-paste (probability)
-    #             'copy_paste': (1, 0.0, 1.0),
-    #             'paste_in': (1, 0.0, 1.0)}    # segment copy-paste (probability)
-
-    #     with open(opt.hyp, errors='ignore') as f:
-    #         hyp = yaml.safe_load(f)  # load hyps dict
-    #         if 'anchors' not in hyp:  # anchors commented in hyp.yaml
-    #             hyp['anchors'] = 3
-
-    #     assert opt.local_rank == -1, 'DDP mode not implemented for --evolve'
-    #     opt.notest, opt.nosave = True, True  # only test/save final epoch
-    #     # ei = [isinstance(x, (int, float)) for x in hyp.values()]  # evolvable indices
-    #     yaml_file = Path(opt.save_dir) / \
-    #         'hyp_evolved.yaml'  # save best result here
-    #     if opt.bucket:
-    #         os.system('gsutil cp gs://%s/evolve.txt .' %
-    #                   opt.bucket)  # download evolve.txt if exists
-
-    #     for _ in range(300):  # generations to evolve
-    #         if Path('evolve.txt').exists():  # if evolve.txt exists: select best hyps and mutate
-    #             # Select parent(s)
-    #             parent = 'single'  # parent selection method: 'single' or 'weighted'
-    #             x = np.loadtxt('evolve.txt', ndmin=2)
-    #             n = min(5, len(x))  # number of previous results to consider
-    #             x = x[np.argsort(-fitness(x))][:n]  # top n mutations
-    #             w = fitness(x) - fitness(x).min()  # weights
-    #             if parent == 'single' or len(x) == 1:
-    #                 # x = x[random.randint(0, n - 1)]  # random selection
-    #                 x = x[random.choices(range(n), weights=w)[
-    #                     0]]  # weighted selection
-    #             elif parent == 'weighted':
-    #                 x = (x * w.reshape(n, 1)).sum(0) / \
-    #                     w.sum()  # weighted combination
-
-    #             # Mutate
-    #             mp, s = 0.8, 0.2  # mutation probability, sigma
-    #             npr = np.random
-    #             npr.seed(int(time.time()))
-    #             g = np.array([x[0] for x in meta.values()])  # gains 0-1
-    #             ng = len(meta)
-    #             v = np.ones(ng)
-    #             while all(v == 1):  # mutate until a change occurs (prevent duplicates)
-    #                 v = (g * (npr.random(ng) < mp) * npr.randn(ng)
-    #                      * npr.random() * s + 1).clip(0.3, 3.0)
-    #             for i, k in enumerate(hyp.keys()):  # plt.hist(v.ravel(), 300)
-    #                 hyp[k] = float(x[i + 7] * v[i])  # mutate
-
-    #         # Constrain to limits
-    #         for k, v in meta.items():
-    #             hyp[k] = max(hyp[k], v[1])  # lower limit
-    #             hyp[k] = min(hyp[k], v[2])  # upper limit
-    #             hyp[k] = round(hyp[k], 5)  # significant digits
-
-    #         # Train mutation
-    #         results = train(hyp.copy(), opt, device)
-
-    #         # Write mutation results
-    #         print_mutation(hyp.copy(), results, yaml_file, opt.bucket)
-
-    #     # Plot results
-    #     plot_evolution(yaml_file)
-    #     print(f'Hyperparameter evolution complete. Best results saved as: {yaml_file}\n'
-    #           f'Command to train a new model with these hyperparameters: $ python train.py --hyp {yaml_file}')
