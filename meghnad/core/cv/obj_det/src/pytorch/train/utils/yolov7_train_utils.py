@@ -8,6 +8,7 @@ from copy import deepcopy
 from typing import Dict
 from pathlib import Path
 from threading import Thread
+from typing import Tuple
 
 import numpy as np
 import torch.distributed as dist
@@ -37,9 +38,18 @@ from meghnad.repo.obj_det.yolov7.utils.plots import plot_images, plot_labels, pl
 from meghnad.repo.obj_det.yolov7.utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
 from meghnad.repo.obj_det.yolov7.utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
 
+from utils.common_defs import method_header
+
 logger = logging.getLogger(__name__)
 
 
+@method_header(
+    description='''
+        Training pipeline.''',
+    arguments='''
+        opt: Config object.''',
+    returns='''
+        Path to best model.''')
 def train(opt: object) -> str:
     hyp, opt, device, tb_writer = _build_opt(opt)
 
@@ -586,7 +596,14 @@ def train(opt: object) -> str:
     return results, best
 
 
-def _build_opt(opt: Dict):
+@method_header(
+    description='''Proceed original config object.''',
+    arguments='''
+        opt: Config object.
+        callbacks: Callback instance''',
+    returns='''
+    A tuple of essential arguments for the training pipeline''')
+def _build_opt(opt: Dict) -> Tuple:
     if opt.hyp:
         opt.hyp = get_meghnad_repo_dir() / 'yolov7' / opt.hyp
 

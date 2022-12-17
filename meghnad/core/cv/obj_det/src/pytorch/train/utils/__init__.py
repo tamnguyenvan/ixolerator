@@ -1,7 +1,16 @@
-from typing import Dict
+from typing import Dict, Callable
+
+from utils.common_defs import class_header, method_header
 
 
-def get_train_pipeline(arch: str):
+@method_header(
+    description='''
+        Get training function from given arch name.''',
+    arguments='''
+        arch: Model arch.''',
+    returns='''
+        A training function.''')
+def get_train_pipeline(arch: str) -> Callable:
     if arch == 'yolov5':
         from meghnad.core.cv.obj_det.src.pytorch.train.utils.yolov5_train_utils import train as train_yolov5
         return train_yolov5
@@ -10,6 +19,7 @@ def get_train_pipeline(arch: str):
         return train_yolov7
 
 
+@class_header(description='''Config object.''')
 class Opt:
     def __str__(self):
         repr_dict = dict()
@@ -19,7 +29,16 @@ class Opt:
         return str(repr_dict)
 
 
-def get_train_opt(model_cfg: Dict, **kwargs):
+@method_header(
+    description='''
+    Get training configs.''',
+    arguments='''
+        model_cfg: Config dict.
+        **kwargs: User-defined arguments.''',
+    returns='''
+        Config object.'''
+)
+def get_train_opt(model_cfg: Dict, **kwargs) -> object:
     opt = Opt()
     for k, v in model_cfg.items():
         setattr(opt, k, v)

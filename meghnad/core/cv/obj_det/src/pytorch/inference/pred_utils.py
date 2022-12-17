@@ -1,5 +1,17 @@
+from typing import Callable
 
-def get_inference_pipeline(arch: str):
+from utils.common_defs import method_header
+
+
+@method_header(
+    description='''
+    Get inference function.''',
+    arguments='''
+        arch: Model arch.''',
+    returns='''
+        Inference function.'''
+)
+def get_inference_pipeline(arch: str) -> Callable:
     if arch == 'yolov5':
         from meghnad.repo.obj_det.yolov5.val import run as test
         return test
