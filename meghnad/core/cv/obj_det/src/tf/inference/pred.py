@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from meghnad.core.cv.obj_det.src.tensorflow.model_loader.utils import decode, compute_nms
+from meghnad.core.cv.obj_det.src.tf.model_loader.utils import decode, compute_nms
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
@@ -64,7 +64,7 @@ class TFObjDetPred:
                 classes: Predicted classes (N, num_classes)
                 scores: Predicted scores (N)
         ''')
-    def predict(self,
+    def pred(self,
                 input: Union[str, np.ndarray],
                 score_threshold: float = 0.4,
                 nms_threshold: float = 0.5,

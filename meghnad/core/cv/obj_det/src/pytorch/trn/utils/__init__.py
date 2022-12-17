@@ -12,11 +12,11 @@ from utils.common_defs import class_header, method_header
         A training function.''')
 def get_train_pipeline(arch: str) -> Callable:
     if arch == 'yolov5':
-        from meghnad.core.cv.obj_det.src.pytorch.train.utils.yolov5_train_utils import train as train_yolov5
-        return train_yolov5
+        from meghnad.core.cv.obj_det.src.pytorch.trn.utils.trn_utils_v5 import train as trn_yolov5
+        return trn_yolov5
     elif arch == 'yolov7':
-        from meghnad.core.cv.obj_det.src.pytorch.train.utils.yolov7_train_utils import train as train_yolov7
-        return train_yolov7
+        from meghnad.core.cv.obj_det.src.pytorch.trn.utils.trn_utils_v7 import train as trn_yolov7
+        return trn_yolov7
 
 
 @class_header(description='''Config object.''')

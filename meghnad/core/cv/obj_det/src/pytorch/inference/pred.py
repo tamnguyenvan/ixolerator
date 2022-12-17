@@ -1,12 +1,9 @@
-from pathlib import Path
 from typing import Optional, Tuple, Any
-import argparse
 import time
 from pathlib import Path
 
 import cv2
 import torch
-import torch.backends.cudnn as cudnn
 from numpy import random
 
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
@@ -21,7 +18,7 @@ from utils.log import Log
 from utils.common_defs import class_header
 
 
-__all__ = ['PytorchObjDetPred']
+__all__ = ['PyTorchObjDetPred']
 
 log = Log()
 
@@ -33,14 +30,14 @@ class Opt:
 @class_header(
     description='''
     Class for Object detection predictions''')
-class PytorchObjDetPred:
+class PyTorchObjDetPred:
     def __init__(self,
                  weights: str,
                  output_dir: Optional[str] = './results') -> None:
         self.weights = weights
         self.output_dir = output_dir
 
-    def predict(self,
+    def pred(self,
                 input: Any,
                 conf_thres: float = 0.25,
                 iou_thres: float = 0.45) -> Tuple:

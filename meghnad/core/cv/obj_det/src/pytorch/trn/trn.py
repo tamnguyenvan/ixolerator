@@ -1,25 +1,17 @@
-import time
 import os
-import math
-import sys
-from typing import List, Tuple, Union, Callable, Dict
-
+from typing import List, Tuple
 import numpy as np
-import tensorflow as tf
-
-from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-# from meghnad.core.cv.obj_det.src.pytorch.train.eval import PytorchObjDetEval
-# from meghnad.core.cv.obj_det.src.pytorch.train.train_utils import get_optimizer
-from meghnad.core.cv.obj_det.src.pytorch.train.utils import get_train_pipeline, get_train_opt
+from meghnad.core.cv.obj_det.cfg import ObjDetConfig
+from meghnad.core.cv.obj_det.src.pytorch.trn.utils import get_train_pipeline, get_train_opt
 from meghnad.repo.obj_det.yolov7.utils.general import fitness
 
 
-__all__ = ['PytorchObjDetTrn']
+__all__ = ['PyTorchObjDetTrn']
 
 
 log = Log()
@@ -58,7 +50,7 @@ def load_config_from_settings(settings: List[str]) -> Tuple[List, List]:
 @class_header(
     description='''
         Class for object detection model training''')
-class PytorchObjDetTrn:
+class PyTorchObjDetTrn:
     def __init__(self, settings: List[str]) -> None:
         self.settings = settings
         self.model_cfgs, self.data_cfgs = load_config_from_settings(settings)
@@ -85,7 +77,7 @@ class PytorchObjDetTrn:
                 resume_path: The path/checkpoint from where the training should be resumed
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
-    def train(self,
+    def trn(self,
               batch_size: int = 16,
               epochs: int = 10,
               imgsz: int = 640,

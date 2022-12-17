@@ -16,7 +16,7 @@ import torch.nn as nn
 import yaml
 from torch.optim import lr_scheduler
 from tqdm import tqdm
-from meghnad.core.cv.obj_det.src.pytorch.train.utils.common import get_meghnad_repo_dir
+from meghnad.core.cv.obj_det.src.pytorch.trn.utils.common import get_meghnad_repo_dir
 
 # FILE = Path(__file__).resolve()
 # ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -36,7 +36,7 @@ from meghnad.repo.obj_det.yolov5.utils.downloads import attempt_download, is_url
 from meghnad.repo.obj_det.yolov5.utils.general import (LOGGER, TQDM_BAR_FORMAT, check_amp, check_dataset, check_file, check_git_info,
                                                        check_git_status, check_img_size, check_requirements, check_suffix, check_yaml, colorstr,
                                                        get_latest_run, increment_path, init_seeds, intersect_dicts, labels_to_class_weights,
-                                                       labels_to_image_weights, methods, one_cycle, print_args, print_mutation, strip_optimizer,
+                                                       labels_to_image_weights, methods, one_cycle, print_args, strip_optimizer,
                                                        yaml_save)
 from meghnad.repo.obj_det.yolov5.utils.loggers import Loggers
 from meghnad.repo.obj_det.yolov5.utils.loggers.comet.comet_utils import check_comet_resume
