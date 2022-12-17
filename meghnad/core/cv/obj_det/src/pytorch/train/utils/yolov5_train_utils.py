@@ -1,10 +1,10 @@
-from typing import Dict
 import argparse
 import math
 import os
 import random
 import sys
 import time
+from typing import Tuple
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
@@ -42,9 +42,12 @@ from meghnad.repo.obj_det.yolov5.utils.loggers import Loggers
 from meghnad.repo.obj_det.yolov5.utils.loggers.comet.comet_utils import check_comet_resume
 from meghnad.repo.obj_det.yolov5.utils.loss import ComputeLoss
 from meghnad.repo.obj_det.yolov5.utils.metrics import fitness
-from meghnad.repo.obj_det.yolov5.utils.plots import plot_evolve
 from meghnad.repo.obj_det.yolov5.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, select_device, smart_DDP, smart_optimizer,
                                                            smart_resume, torch_distributed_zero_first)
+
+
+from utils.common_defs import method_header
+
 
 # https://pytorch.org/docs/stable/elastic/run.html
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))
@@ -53,6 +56,13 @@ WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 GIT_INFO = check_git_info()
 
 
+@method_header(
+    description='''
+        Training pipeline.''',
+    arguments='''
+        opt: Config object.''',
+    returns='''
+        Path to best model.''')
 def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     hyp, opt, device, callbacks = _build_opt(opt)
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
@@ -470,7 +480,14 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     return results, best
 
 
-def _build_opt(opt: object, callbacks=Callbacks()):
+@method_header(
+    description='''Proceed original config object.''',
+    arguments='''
+        opt: Config object.
+        callbacks: Callback instance''',
+    returns='''
+    A tuple of essential arguments for the training pipeline''')
+def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
     # Checks
     if RANK in {-1, 0}:
         print_args(vars(opt))
