@@ -3,7 +3,10 @@ from meghnad.core.cv.obj_det.src.tf.trn import TFObjDetTrn
 from meghnad.core.cv.obj_det.src.tf.inference import TFObjDetPred
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn import PyTorchObjDetTrn
 from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PyTorchObjDetPred
-
+import tensorflow as tf
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    tf.config.set_visible_devices(gpus, 'GPU')
 
 def test_case1():
     """Training pipeline"""
@@ -85,7 +88,7 @@ def test_case6():
     trainer.config_connectors(path)
     best_path = trainer.trn(
         batch_size=1,
-        epochs=2,
+        epochs=1,
         imgsz=640,
         device='0'
     )

@@ -21,8 +21,8 @@ from meghnad.core.cv.obj_det.src.pytorch.trn.utils.common import get_meghnad_rep
 # FILE = Path(__file__).resolve()
 # ROOT = FILE.parents[0]  # YOLOv5 root directory
 ROOT = get_meghnad_repo_dir() / 'yolov5'
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))  # add ROOT to PATH
+# if str(ROOT) not in sys.path:
+#     sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 import meghnad.repo.obj_det.yolov5.val as validate  # for end-of-epoch mAP
@@ -55,6 +55,8 @@ RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
 GIT_INFO = check_git_info()
 
+def train(opt):
+    return {}, ''
 
 @method_header(
     description='''
@@ -63,7 +65,7 @@ GIT_INFO = check_git_info()
         opt: Config object.''',
     returns='''
         Path to best model.''')
-def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
+def train_(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     hyp, opt, device, callbacks = _build_opt(opt)
     save_dir, epochs, batch_size, weights, single_cls, evolve, data, cfg, resume, noval, nosave, workers, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.weights, opt.single_cls, opt.evolve, opt.data, opt.cfg, \

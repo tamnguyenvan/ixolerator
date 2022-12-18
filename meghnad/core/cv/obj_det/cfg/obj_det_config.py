@@ -42,6 +42,20 @@ _obj_det_cfg = {
             'feature_map_sizes': [19, 10, 5, 3, 2, 1],
             'scales': [0.1, 0.2, 0.375, 0.55, 0.725, 0.9, 1.05],
             'neg_ratio': 3,
+            'augmentations': {
+                'train':
+                {
+                    'resize': {'width': 300, 'height': 300},
+                    'random_fliplr': {'p': 0.5},
+                    'random_brightness': {'p': 0.2},
+                    'normalize': {'mean': (0.485, 0.456, 0.406), 'std': (0.229, 0.224, 0.225)}
+                },
+                'test':
+                {
+                    'resize': {'width': 300, 'height': 300},
+                    'normalize': {'mean': (0.485, 0.456, 0.406), 'std': (0.229, 0.224, 0.225)}
+                }
+            },
             'hyp_params':
             {
                 'batch_size': 8,
@@ -195,6 +209,7 @@ _obj_det_cfg = {
             'nosave': False,
             'noval': False,
             'noautoanchor': False,
+            'notest': False,
             'noplots': False,
             'evolve': False,
             'bucket': '',
@@ -226,7 +241,7 @@ _obj_det_cfg = {
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
-        'light_models': ['YOLOv5']
+        'light_models': ['YOLOv5', 'YOLOv7']
     }
 }
 

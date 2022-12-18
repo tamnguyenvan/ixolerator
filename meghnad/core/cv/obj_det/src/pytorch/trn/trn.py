@@ -8,7 +8,7 @@ from utils.common_defs import class_header, method_header
 
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 from meghnad.core.cv.obj_det.src.pytorch.trn.utils import get_train_pipeline, get_train_opt
-from meghnad.repo.obj_det.yolov7.utils.general import fitness
+# from meghnad.repo.obj_det.yolov7.utils.general import fitness
 
 
 __all__ = ['PyTorchObjDetTrn']
@@ -99,8 +99,8 @@ class PyTorchObjDetTrn:
 
             print(opt)
             results, best = train_pipeline(opt)
-            fi = fitness(np.array(results).reshape(1, -1))
-            if fi > best_fitness:
-                best_fitness = fi
-                best_path = best
+            # fi = fitness(np.array(results).reshape(1, -1))
+            # if fi > best_fitness:
+            #     best_fitness = fi
+            #     best_path = best
         return best_path

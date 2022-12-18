@@ -1,3 +1,4 @@
+import sys
 import argparse
 import logging
 import math
@@ -23,7 +24,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-import test  # import test.py to get mAP after each epoch
+from meghnad.repo.obj_det.yolov7 import test  # import test.py to get mAP after each epoch
 from meghnad.core.cv.obj_det.src.pytorch.trn.utils.common import get_meghnad_repo_dir
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
 from meghnad.repo.obj_det.yolov7.models.yolo import Model
@@ -83,6 +84,7 @@ def train(opt: object) -> str:
     loggers = {'wandb': None}  # loggers dict
     if rank in [-1, 0]:
         opt.hyp = hyp  # add hyperparameters
+        print(weights)
         run_id = torch.load(weights, map_location=device).get(
             'wandb_id') if weights.endswith('.pt') and os.path.isfile(weights) else None
         wandb_logger = WandbLogger(

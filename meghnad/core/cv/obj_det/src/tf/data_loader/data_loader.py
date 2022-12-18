@@ -1,5 +1,7 @@
 import os
 import json
+from typing import Dict
+
 import tensorflow as tf
 from utils.log import Log
 from utils.common_defs import class_header, method_header
@@ -20,7 +22,7 @@ log = Log()
     Data loader for object detection.
     ''')
 class TFObjDetDataLoader:
-    def __init__(self, data_path, data_cfg, model_cfg):
+    def __init__(self, data_path: str, data_cfg: Dict, model_cfg: Dict, augmentations: Dict = None):
         self.data_cfg = data_cfg
         self.model_cfg = model_cfg
 
@@ -43,10 +45,21 @@ class TFObjDetDataLoader:
         self.test_dataset = None
         self.test_size = 0
 
-        self.train_transforms = build_transforms(
-            data_cfg['augmentations']['train'])
-        self.test_transforms = build_transforms(
-            data_cfg['augmentations']['test'])
+        if augmentations and 'train' in augmentations:
+            self.train_transforms = build_transforms(
+                augmentations['train']
+            )
+        else:
+            self.train_transforms = build_transforms(
+                model_cfg['augmentations']['train'])
+
+        if augmentations and 'test' in augmentations:
+            self.test_transforms = build_transforms(
+                augmentations['test']
+            )
+        else:
+            self.test_transforms = build_transforms(
+                model_cfg['augmentations']['test'])
 
         self.default_boxes = generate_default_boxes(
             scales, feature_map_sizes, aspect_ratios)
