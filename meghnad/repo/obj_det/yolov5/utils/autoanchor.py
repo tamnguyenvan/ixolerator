@@ -1,6 +1,6 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
-AutoAnchor utils
+AutoAnchor trn_utils
 """
 
 import random
@@ -79,7 +79,7 @@ def kmean_anchors(dataset='./data/coco128.yaml', n=9, img_size=640, thr=4.0, gen
             k: kmeans evolved anchors
 
         Usage:
-            from utils.autoanchor import *; _ = kmean_anchors()
+            from trn_utils.autoanchor import *; _ = kmean_anchors()
     """
     from scipy.cluster.vq import kmeans
 

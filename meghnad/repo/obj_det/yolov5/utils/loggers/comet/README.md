@@ -228,7 +228,7 @@ YOLOv5 is also integrated with Comet's Optimizer, making is simple to visualie h
 To configure the Comet Optimizer, you will have to create a JSON file with the information about the sweep. An example file has been provided in `utils/loggers/comet/optimizer_config.json`
 
 ```shell
-python utils/loggers/comet/hpo.py \
+python trn_utils/loggers/comet/hpo.py \
   --comet_optimizer_config "utils/loggers/comet/optimizer_config.json"
 ```
 
@@ -236,7 +236,7 @@ The `hpo.py` script accepts the same arguments as `train.py`. If you wish to pas
 the script.
 
 ```shell
-python utils/loggers/comet/hpo.py \
+python trn_utils/loggers/comet/hpo.py \
   --comet_optimizer_config "utils/loggers/comet/optimizer_config.json" \
   --save-period 1 \
   --bbox_interval 1
@@ -245,8 +245,8 @@ python utils/loggers/comet/hpo.py \
 ### Running a Sweep in Parallel
 
 ```shell
-comet optimizer -j <set number of workers> utils/loggers/comet/hpo.py \
-  utils/loggers/comet/optimizer_config.json"
+comet optimizer -j <set number of workers> trn_utils/loggers/comet/hpo.py \
+  trn_utils/loggers/comet/optimizer_config.json"
 ```
 
 ### Visualizing Results

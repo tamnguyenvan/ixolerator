@@ -1,4 +1,4 @@
-# Auto-anchor utils
+# Auto-anchor trn_utils
 
 import numpy as np
 import torch
@@ -84,7 +84,7 @@ def kmean_anchors(path='./data/coco.yaml', n=9, img_size=640, thr=4.0, gen=1000,
             k: kmeans evolved anchors
 
         Usage:
-            from utils.autoanchor import *; _ = kmean_anchors()
+            from trn_utils.autoanchor import *; _ = kmean_anchors()
     """
     thr = 1. / thr
     prefix = colorstr('autoanchor: ')

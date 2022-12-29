@@ -34,7 +34,7 @@ jobs:
         with:
           context: .
           platforms: linux/arm64
-          file: utils/docker/Dockerfile-arm64
+          file: trn_utils/docker/Dockerfile-arm64
           push: true
           tags: ultralytics/yolov5:latest-arm64
 
@@ -43,7 +43,7 @@ jobs:
         continue-on-error: true
         with:
           context: .
-          file: utils/docker/Dockerfile-cpu
+          file: trn_utils/docker/Dockerfile-cpu
           push: true
           tags: ultralytics/yolov5:latest-cpu
 
@@ -52,6 +52,6 @@ jobs:
         continue-on-error: true
         with:
           context: .
-          file: utils/docker/Dockerfile
+          file: trn_utils/docker/Dockerfile
           push: true
           tags: ultralytics/yolov5:latest

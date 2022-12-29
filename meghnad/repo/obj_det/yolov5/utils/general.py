@@ -1,6 +1,6 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
-General utils
+General trn_utils
 """
 
 import contextlib
@@ -478,7 +478,7 @@ def check_file(file, suffix=''):
         return file
     else:  # search
         files = []
-        for d in 'data', 'models', 'utils':  # search directories
+        for d in 'data', 'models', 'trn_utils':  # search directories
             files.extend(glob.glob(str(ROOT / d / '**' / file), recursive=True))  # find file
         assert len(files), f'File not found: {file}'  # assert file was found
         assert len(files) == 1, f"Multiple files match '{file}', specify exact path: {files}"  # assert unique
@@ -999,7 +999,7 @@ def non_max_suppression(
     return output
 
 
-def strip_optimizer(f='best.pt', s=''):  # from utils.general import *; strip_optimizer()
+def strip_optimizer(f='best.pt', s=''):  # from trn_utils.general import *; strip_optimizer()
     # Strip optimizer from 'f' to finalize training, optionally save as 's'
     x = torch.load(f, map_location=torch.device('cpu'))
     if x.get('ema'):

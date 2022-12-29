@@ -1,4 +1,3 @@
-import sys
 import argparse
 import logging
 import math
@@ -25,7 +24,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from meghnad.repo.obj_det.yolov7 import test  # import test.py to get mAP after each epoch
-from meghnad.core.cv.obj_det.src.pytorch.trn.utils.common import get_meghnad_repo_dir
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_meghnad_repo_dir
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
 from meghnad.repo.obj_det.yolov7.models.yolo import Model
 from meghnad.repo.obj_det.yolov7.utils.autoanchor import check_anchors
@@ -84,7 +83,6 @@ def train(opt: object) -> str:
     loggers = {'wandb': None}  # loggers dict
     if rank in [-1, 0]:
         opt.hyp = hyp  # add hyperparameters
-        print(weights)
         run_id = torch.load(weights, map_location=device).get(
             'wandb_id') if weights.endswith('.pt') and os.path.isfile(weights) else None
         wandb_logger = WandbLogger(
@@ -303,10 +301,7 @@ def train(opt: object) -> str:
         if not opt.resume:
             labels = np.concatenate(dataset.labels, 0)
             c = torch.tensor(labels[:, 0])  # classes
-            # cf = torch.bincount(c.long(), minlength=nc) + 1.  # frequency
-            # model._initialize_biases(cf.to(device))
             if plots:
-                #plot_labels(labels, names, save_dir, loggers)
                 if tb_writer:
                     tb_writer.add_histogram('classes', c, 0)
 
@@ -319,7 +314,6 @@ def train(opt: object) -> str:
     # DDP mode
     if cuda and rank != -1:
         model = DDP(model, device_ids=[opt.local_rank], output_device=opt.local_rank,
-                    # nn.MultiheadAttention incompatibility with DDP https://github.com/pytorch/pytorch/issues/26698
                     find_unused_parameters=any(isinstance(layer, nn.MultiheadAttention) for layer in model.modules()))
 
     # Model parameters
@@ -339,7 +333,6 @@ def train(opt: object) -> str:
     t0 = time.time()
     # number of warmup iterations, max(3 epochs, 1k iterations)
     nw = max(round(hyp['warmup_epochs'] * nb), 1000)
-    # nw = min(nw, (epochs - start_epoch) / 2 * nb)  # limit warmup to < 1/2 of training
     maps = np.zeros(nc)  # mAP per class
     # P, R, mAP@.5, mAP@.5-.95, val_loss(box, obj, cls)
     results = (0, 0, 0, 0, 0, 0, 0)
@@ -373,10 +366,6 @@ def train(opt: object) -> str:
                 if rank != 0:
                     dataset.indices = indices.cpu().numpy()
 
-        # Update mosaic border
-        # b = int(random.uniform(0.25 * imgsz, 0.75 * imgsz + gs) // gs * gs)
-        # dataset.mosaic_border = [b - imgsz, -b]  # height, width borders
-
         mloss = torch.zeros(4, device=device)  # mean losses
         if rank != -1:
             dataloader.sampler.set_epoch(epoch)
@@ -396,7 +385,6 @@ def train(opt: object) -> str:
             # Warmup
             if ni <= nw:
                 xi = [0, nw]  # x interp
-                # model.gr = np.interp(ni, xi, [0.0, 1.0])  # iou loss ratio (obj_loss = 1.0 or iou)
                 accumulate = max(1, np.interp(
                     ni, xi, [1, nbs / total_batch_size]).round())
                 for j, x in enumerate(optimizer.param_groups):
@@ -458,9 +446,6 @@ def train(opt: object) -> str:
                     f = save_dir / f'train_batch{ni}.jpg'  # filename
                     Thread(target=plot_images, args=(
                         imgs, targets, paths, f), daemon=True).start()
-                    # if tb_writer:
-                    #     tb_writer.add_image(f, result, dataformats='HWC', global_step=epoch)
-                    #     tb_writer.add_graph(torch.jit.trace(model, imgs, strict=False), [])  # add model graph
                 elif plots and ni == 10 and wandb_logger.wandb:
                     wandb_logger.log({"Mosaics": [wandb_logger.wandb.Image(str(x), caption=x.name) for x in
                                                   save_dir.glob('train*.jpg') if x.exists()]})
@@ -606,7 +591,7 @@ def train(opt: object) -> str:
     returns='''
     A tuple of essential arguments for the training pipeline''')
 def _build_opt(opt: Dict) -> Tuple:
-    if opt.hyp:
+    if opt.hyp and isinstance(opt.hyp, str):
         opt.hyp = get_meghnad_repo_dir() / 'yolov7' / opt.hyp
 
     # Set DDP variables
@@ -614,9 +599,6 @@ def _build_opt(opt: Dict) -> Tuple:
                          ) if 'WORLD_SIZE' in os.environ else 1
     opt.global_rank = int(os.environ['RANK']) if 'RANK' in os.environ else -1
     set_logging(opt.global_rank)
-    # if opt.global_rank in [-1, 0]:
-    #    check_git_status()
-    #    check_requirements()
 
     # Resume
     wandb_run = check_wandb_resume(opt)
@@ -632,9 +614,11 @@ def _build_opt(opt: Dict) -> Tuple:
         opt.cfg, opt.weights, opt.resume, opt.batch_size, opt.global_rank, opt.local_rank = '', ckpt, True, opt.total_batch_size, *apriori  # reinstate
         logger.info('Resuming training from %s' % ckpt)
     else:
-        # opt.hyp = opt.hyp or ('hyp.finetune.yaml' if opt.weights else 'hyp.scratch.yaml')
-        opt.data, opt.cfg, opt.hyp = check_file(opt.data), check_file(
-            opt.cfg), check_file(opt.hyp)  # check files
+        opt.data, opt.cfg = check_file(opt.data), check_file(
+            opt.cfg)  # check files
+
+        if isinstance(opt.hyp, str):
+            opt.hyp = check_file(opt.hyp)
         assert len(opt.cfg) or len(
             opt.weights), 'either --cfg or --weights must be specified'
         # extend to 2 sizes (train, test)
@@ -656,12 +640,14 @@ def _build_opt(opt: Dict) -> Tuple:
         opt.batch_size = opt.total_batch_size // opt.world_size
 
     # Hyperparameters
-    with open(opt.hyp) as f:
-        hyp = yaml.load(f, Loader=yaml.SafeLoader)  # load hyps
+    if isinstance(opt.hyp, str):
+        with open(opt.hyp) as f:
+            hyp = yaml.load(f, Loader=yaml.SafeLoader)  # load hyps
+    else:
+        hyp = opt.hyp
 
     # Train
     logger.info(opt)
-    # if not opt.evolve:
     tb_writer = None  # init loggers
     if opt.global_rank in [-1, 0]:
         prefix = colorstr('tensorboard: ')

@@ -1,4 +1,4 @@
-# Dataset utils and dataloaders
+# Dataset trn_utils and dataloaders
 
 import glob
 import logging
@@ -85,7 +85,7 @@ def create_dataloader(path, imgsz, batch_size, stride, opt, hyp=None, augment=Fa
     sampler = torch.utils.data.distributed.DistributedSampler(
         dataset) if rank != -1 else None
     loader = torch.utils.data.DataLoader if image_weights else InfiniteDataLoader
-    # Use torch.utils.data.DataLoader() if dataset.properties will update during training else InfiniteDataLoader()
+    # Use torch.trn_utils.data.DataLoader() if dataset.properties will update during training else InfiniteDataLoader()
     dataloader = loader(dataset,
                         batch_size=batch_size,
                         num_workers=nw,
@@ -1367,7 +1367,7 @@ def flatten_recursive(path='../coco'):
         shutil.copyfile(file, new_path / Path(file).name)
 
 
-# from utils.datasets import *; extract_boxes('../coco128')
+# from trn_utils.datasets import *; extract_boxes('../coco128')
 def extract_boxes(path='../coco/'):
     # Convert detection dataset into classification dataset, with one directory per class
 
@@ -1411,7 +1411,7 @@ def extract_boxes(path='../coco/'):
 
 def autosplit(path='../coco', weights=(0.9, 0.1, 0.0), annotated_only=False):
     """ Autosplit a dataset into train/val/test splits and save path/autosplit_*.txt files
-    Usage: from utils.datasets import *; autosplit('../coco')
+    Usage: from trn_utils.datasets import *; autosplit('../coco')
     Arguments
         path:           Path to images directory
         weights:        Train, val, test weights (list)

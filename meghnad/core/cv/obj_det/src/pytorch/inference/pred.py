@@ -13,9 +13,8 @@ from meghnad.repo.obj_det.yolov7.utils.general import check_img_size, non_max_su
 from meghnad.repo.obj_det.yolov7.utils.plots import plot_one_box
 from meghnad.repo.obj_det.yolov7.utils.torch_utils import select_device, time_synchronized
 
-from utils import ret_values
 from utils.log import Log
-from utils.common_defs import class_header
+from utils.common_defs import class_header, method_header
 
 
 __all__ = ['PyTorchObjDetPred']
@@ -37,6 +36,15 @@ class PyTorchObjDetPred:
         self.weights = weights
         self.output_dir = output_dir
 
+    @method_header(
+        description="""Curates directories, runs inference, performs post processing and processes detections
+        """,
+        arguments="""
+            input: image
+            conf_thres: Minimum confidence required for the object to be shown as detection
+            iou_thres: Intersection over Union Threshold
+        """,
+        returns="""Prints out the time taken for actual inferencing, and then the post processing steps""")
     def pred(self,
                 input: Any,
                 conf_thres: float = 0.25,

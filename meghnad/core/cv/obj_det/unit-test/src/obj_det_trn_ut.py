@@ -8,6 +8,7 @@ gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     tf.config.set_visible_devices(gpus, 'GPU')
 
+
 def test_case1():
     """Training pipeline"""
     settings = ['light']
@@ -62,7 +63,7 @@ def test_case4():
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
     trainer.trn(
-        hyp={'optimizer': 'Adam', 'learning_rate': 1e-4}
+        hyp={'optimizer': 'Adam', 'learning_rate': 1e-4, 'weight_decay': 1e-5}
     )
 
 
@@ -86,12 +87,20 @@ def test_case6():
     settings = ['light']
     trainer = PyTorchObjDetTrn(settings)
     trainer.config_connectors(path)
-    best_path = trainer.trn(
+    success, best_path = trainer.trn(
         batch_size=1,
         epochs=1,
         imgsz=640,
-        device='0'
+        device='0',
+        hyp={'fliplr': 0.4, 'lr0': 0.02,
+             'lrf': 0.2, 'weight_decay': 0.0003,
+             'translate': 0.2, 'scale': 0.8,
+             'optimizer': 'Adam'}
     )
+
+    print('=' * 50)
+    print('====== Path to the best model:', best_path)
+    print('=' * 50)
 
     tester = PyTorchObjDetPred(best_path)
     img_path = './coco128/images/train2017/000000000009.jpg'

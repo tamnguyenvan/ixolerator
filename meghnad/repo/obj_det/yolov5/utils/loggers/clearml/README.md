@@ -170,7 +170,7 @@ You'll need to fill in the ID of this `template task` in the script found at `ut
 ```bash
 # To use optuna, install it first, otherwise you can change the optimizer to just be RandomSearch
 pip install optuna
-python utils/loggers/clearml/hpo.py
+python trn_utils/loggers/clearml/hpo.py
 ```
 
 ![HPO](https://github.com/thepycoder/clearml_screenshots/raw/main/hpo.png)

@@ -1,6 +1,6 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
-Download utils
+Download trn_utils
 """
 
 import logging
@@ -59,7 +59,7 @@ def safe_download(file, url, url2=None, min_bytes=1E0, error_msg=''):
         LOGGER.info('')
 
 
-def attempt_download(file, repo='ultralytics/yolov5', release='v7.0'):
+def attempt_download(file, repo='prudhvir36/yolo_weights', release='v0.1'):
     # Attempt file download from GitHub release assets if not found locally. release = 'latest', 'v7.0', etc.
     from meghnad.repo.obj_det.yolov5.utils.general import LOGGER
 
