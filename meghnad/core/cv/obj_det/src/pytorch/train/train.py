@@ -13,8 +13,6 @@ from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-# from meghnad.core.cv.obj_det.src.pytorch.train.eval import PytorchObjDetEval
-# from meghnad.core.cv.obj_det.src.pytorch.train.train_utils import get_optimizer
 from meghnad.core.cv.obj_det.src.pytorch.train.utils import get_train_pipeline, get_train_opt
 from meghnad.repo.obj_det.yolov7.utils.general import fitness
 

@@ -3,7 +3,6 @@ from meghnad.core.cv.obj_det.src.tensorflow.train import TFObjDetTrn
 from meghnad.core.cv.obj_det.src.tensorflow.inference import TFObjDetPred
 from meghnad.core.cv.obj_det.src.pytorch.train.train import PytorchObjDetTrn
 from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PytorchObjDetPred
-from meghnad.core.cv.obj_det.src.pytorch.data_loader import build_loader
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
 

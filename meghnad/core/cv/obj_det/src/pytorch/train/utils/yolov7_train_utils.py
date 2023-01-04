@@ -102,6 +102,7 @@ def train(opt: object) -> str:
         len(names), nc, opt.data)  # check
 
     # Model
+    weights = 'yolov7.pt'
     pretrained = weights.endswith('.pt')
     if pretrained:
         with torch_distributed_zero_first(rank):
@@ -117,6 +118,13 @@ def train(opt: object) -> str:
         model.load_state_dict(state_dict, strict=False)  # load
         logger.info('Transferred %g/%g items from %s' %
                     (len(state_dict), len(model.state_dict()), weights))  # report
+
+        new_ckpt = {'epoch': ckpt['epoch'],
+                    'training_results': ckpt['training_results'],
+                    'model': deepcopy(model.module if is_parallel(model) else model).half(),
+                    'optimizer': ckpt['optimizer']}
+        torch.save(new_ckpt, 'tmp.pt')
+        print('=' * 20)
     else:
         model = Model(opt.cfg, ch=3, nc=nc, anchors=hyp.get(
             'anchors')).to(device)  # create
