@@ -501,7 +501,8 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
             opt.data = check_file(opt_data)  # avoid HUB resume auth timeout
     else:
         opt.data, opt.cfg, opt.weights, opt.project = \
-            check_file(opt.data), check_yaml(opt.cfg), str(opt.weights), str(opt.project)  # checks
+            check_file(opt.data), check_yaml(opt.cfg), str(
+                opt.weights), str(opt.project)  # checks
         if isinstance(opt.hyp, str):
             opt.hyp = check_yaml(opt.hyp)
         assert len(opt.cfg) or len(
@@ -516,6 +517,9 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
             opt.name = Path(opt.cfg).stem  # use model.yaml as name
         opt.save_dir = str(increment_path(
             Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
+        opt.save_dir = opt.project / opt.name
+        if not os.path.isdir(opt.save_dir):
+            os.makedirs(opt.save_dir, exist_ok=True)
 
     # DDP mode
     device = select_device(opt.device, batch_size=opt.batch_size)

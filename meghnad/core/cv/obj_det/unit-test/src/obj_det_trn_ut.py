@@ -88,7 +88,7 @@ def test_case6():
     settings = ['light']
     trainer = PyTorchObjDetTrn(settings)
     trainer.config_connectors(path)
-    success, best_path = trainer.trn(
+    success, best_opt, best_path = trainer.trn(
         batch_size=1,
         epochs=1,
         imgsz=640,
@@ -103,7 +103,7 @@ def test_case6():
     print('====== Path to the best model:', best_path)
     print('=' * 50)
 
-    tester = PyTorchObjDetPred(best_path)
+    tester = PyTorchObjDetPred(best_opt, best_path)
     img_path = './coco128/images/train2017/000000000009.jpg'
     tester.pred(img_path)
 

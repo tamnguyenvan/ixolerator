@@ -101,6 +101,7 @@ class PyTorchObjDetTrn:
             hyp: Dict = None) -> Tuple:
         best_fitness = 0.0
         best_path = None
+        best_opt = None
         for model_cfg in self.model_cfgs:
             train_pipeline = get_train_pipeline(model_cfg['arch'])
             opt = get_train_opt(
@@ -119,4 +120,5 @@ class PyTorchObjDetTrn:
             if fi > best_fitness:
                 best_fitness = fi
                 best_path = best
-        return ret_values.IXO_RET_SUCCESS, best_path
+                best_opt = opt
+        return ret_values.IXO_RET_SUCCESS, best_opt, best_path

@@ -31,10 +31,36 @@ class Opt:
     Class for Object detection predictions''')
 class PyTorchObjDetPred:
     def __init__(self,
+                 opt: object,
                  weights: str,
                  output_dir: Optional[str] = './results') -> None:
+        self.opt = opt
         self.weights = weights
         self.output_dir = output_dir
+
+        # Initialize
+        set_logging()
+        self.device = select_device(opt.device)
+        self.half = self.device.type != 'cpu'  # half precision only supported on CUDA
+
+        # Load model
+        self.model = attempt_load(
+            weights, map_location=self.device)  # load FP32 model
+        self.stride = int(self.model.stride.max())  # model stride
+
+        # Check image size
+        self.imgsz = torch.load(weights, map_location=self.device)['img_size']
+        self.imgsz = check_img_size(
+            self.imgsz, s=self.stride)  # check img_size
+
+        if self.half:
+            self.model.half()  # to FP16
+
+        # Load dataset
+        dataset = LoadImages(input, img_size=self.imgsz, stride=self.stride)
+        if self.device.type != 'cpu':
+            self.model(torch.zeros(1, 3, self.imgsz, self.imgsz).to(self.device).type_as(
+                next(self.model.parameters())))  # run once
 
     @method_header(
         description="""Curates directories, runs inference, performs post processing and processes detections
@@ -46,23 +72,15 @@ class PyTorchObjDetPred:
         """,
         returns="""Prints out the time taken for actual inferencing, and then the post processing steps""")
     def pred(self,
-                input: Any,
-                conf_thres: float = 0.25,
-                iou_thres: float = 0.45) -> Tuple:
-        opt = Opt()
-        opt.nosave = False
-        opt.conf_thres = conf_thres
-        opt.iou_thres = iou_thres
-        opt.project = 'runs/test'
-        opt.name = 'exp'
-        opt.device = ''
-        opt.classes = None
-        opt.exist_ok = False
-        opt.no_trace = True
-        opt.augment = False
-        opt.agnostic_nms = False
-
-        weights = self.weights
+             input: Any,
+             conf_thres: float = 0.25,
+             iou_thres: float = 0.45) -> Tuple:
+        opt = self.opt
+        device = self.device
+        half = self.half
+        model = self.model
+        imgsz = self.imgsz
+        dataset = self.dataset
 
         save_img = not opt.nosave and not input.endswith(
             '.txt')  # save inference images
@@ -70,34 +88,15 @@ class PyTorchObjDetPred:
             ('rtsp://', 'rtmp://', 'http://', 'https://'))
 
         # Directories
-        save_dir = Path(increment_path(Path(opt.project) / opt.name,
-                        exist_ok=opt.exist_ok))  # increment run
+        project = 'runs/test'
+        save_dir = Path(project) / opt.name
         save_dir.mkdir(parents=True, exist_ok=True)
-
-        # Initialize
-        set_logging()
-        device = select_device(opt.device)
-        half = device.type != 'cpu'  # half precision only supported on CUDA
-
-        # Load model
-        model = attempt_load(weights, map_location=device)  # load FP32 model
-        stride = int(model.stride.max())  # model stride
-
-        imgsz = torch.load(weights, map_location=device)['img_size']
-        imgsz = check_img_size(imgsz, s=stride)  # check img_size
-
-        if half:
-            model.half()  # to FP16
-        dataset = LoadImages(input, img_size=imgsz, stride=stride)
 
         # Get names and colors
         names = model.module.names if hasattr(model, 'module') else model.names
         colors = [[random.randint(0, 255) for _ in range(3)] for _ in names]
 
         # Run inference
-        if device.type != 'cpu':
-            model(torch.zeros(1, 3, imgsz, imgsz).to(device).type_as(
-                next(model.parameters())))  # run once
         old_img_w = old_img_h = imgsz
         old_img_b = 1
 
@@ -125,7 +124,7 @@ class PyTorchObjDetPred:
 
             # Apply NMS
             pred = non_max_suppression(
-                pred, opt.conf_thres, opt.iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
+                pred, conf_thres, iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
             t3 = time_synchronized()
 
             # Process detections

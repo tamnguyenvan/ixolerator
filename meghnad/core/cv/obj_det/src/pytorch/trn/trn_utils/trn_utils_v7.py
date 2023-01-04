@@ -23,7 +23,8 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
-from meghnad.repo.obj_det.yolov7 import test  # import test.py to get mAP after each epoch
+# import test.py to get mAP after each epoch
+from meghnad.repo.obj_det.yolov7 import test
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_meghnad_repo_dir
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
 from meghnad.repo.obj_det.yolov7.models.yolo import Model
@@ -31,7 +32,7 @@ from meghnad.repo.obj_det.yolov7.utils.autoanchor import check_anchors
 from meghnad.repo.obj_det.yolov7.utils.datasets import create_dataloader
 from meghnad.repo.obj_det.yolov7.utils.general import labels_to_class_weights, increment_path, labels_to_image_weights, init_seeds, \
     fitness, strip_optimizer, get_latest_run, check_dataset, check_file, check_img_size, \
-             set_logging, one_cycle, colorstr
+    set_logging, one_cycle, colorstr
 from meghnad.repo.obj_det.yolov7.utils.google_utils import attempt_download
 from meghnad.repo.obj_det.yolov7.utils.loss import ComputeLoss, ComputeLossOTA
 from meghnad.repo.obj_det.yolov7.utils.plots import plot_images, plot_results
@@ -102,7 +103,6 @@ def train(opt: object) -> str:
         len(names), nc, opt.data)  # check
 
     # Model
-    weights = 'yolov7.pt'
     pretrained = weights.endswith('.pt')
     if pretrained:
         with torch_distributed_zero_first(rank):
@@ -118,13 +118,6 @@ def train(opt: object) -> str:
         model.load_state_dict(state_dict, strict=False)  # load
         logger.info('Transferred %g/%g items from %s' %
                     (len(state_dict), len(model.state_dict()), weights))  # report
-
-        new_ckpt = {'epoch': ckpt['epoch'],
-                    'training_results': ckpt['training_results'],
-                    'model': deepcopy(model.module if is_parallel(model) else model).half(),
-                    'optimizer': ckpt['optimizer']}
-        torch.save(new_ckpt, 'tmp.pt')
-        print('=' * 20)
     else:
         model = Model(opt.cfg, ch=3, nc=nc, anchors=hyp.get(
             'anchors')).to(device)  # create
@@ -632,8 +625,11 @@ def _build_opt(opt: Dict) -> Tuple:
         # extend to 2 sizes (train, test)
         opt.img_size.extend([opt.img_size[-1]] * (2 - len(opt.img_size)))
         opt.name = 'evolve' if opt.evolve else opt.name
-        opt.save_dir = increment_path(Path(
-            opt.project) / opt.name, exist_ok=opt.exist_ok | opt.evolve)  # increment run
+        # opt.save_dir = increment_path(Path(
+        #     opt.project) / opt.name, exist_ok=opt.exist_ok | opt.evolve)  # increment run
+        opt.save_dir = opt.project / opt.name
+        if not os.path.isdir(opt.save_dir):
+            os.makedirs(opt.save_dir, exist_ok=True)
 
     # DDP mode
     opt.total_batch_size = opt.batch_size
