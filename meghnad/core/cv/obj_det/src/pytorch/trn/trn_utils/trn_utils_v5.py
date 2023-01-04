@@ -2,7 +2,6 @@ import argparse
 import math
 import os
 import random
-import sys
 import time
 from typing import Tuple
 from copy import deepcopy
@@ -16,13 +15,9 @@ import torch.nn as nn
 import yaml
 from torch.optim import lr_scheduler
 from tqdm import tqdm
-from meghnad.core.cv.obj_det.src.pytorch.train.utils.common import get_meghnad_repo_dir
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_meghnad_repo_dir
 
-# FILE = Path(__file__).resolve()
-# ROOT = FILE.parents[0]  # YOLOv5 root directory
 ROOT = get_meghnad_repo_dir() / 'yolov5'
-if str(ROOT) not in sys.path:
-    sys.path.append(str(ROOT))  # add ROOT to PATH
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
 import meghnad.repo.obj_det.yolov5.val as validate  # for end-of-epoch mAP
@@ -36,7 +31,7 @@ from meghnad.repo.obj_det.yolov5.utils.downloads import attempt_download, is_url
 from meghnad.repo.obj_det.yolov5.utils.general import (LOGGER, TQDM_BAR_FORMAT, check_amp, check_dataset, check_file, check_git_info,
                                                        check_git_status, check_img_size, check_requirements, check_suffix, check_yaml, colorstr,
                                                        get_latest_run, increment_path, init_seeds, intersect_dicts, labels_to_class_weights,
-                                                       labels_to_image_weights, methods, one_cycle, print_args, print_mutation, strip_optimizer,
+                                                       labels_to_image_weights, methods, one_cycle, print_args, strip_optimizer,
                                                        yaml_save)
 from meghnad.repo.obj_det.yolov5.utils.loggers import Loggers
 from meghnad.repo.obj_det.yolov5.utils.loggers.comet.comet_utils import check_comet_resume
@@ -49,7 +44,6 @@ from meghnad.repo.obj_det.yolov5.utils.torch_utils import (EarlyStopping, ModelE
 from utils.common_defs import method_header
 
 
-# https://pytorch.org/docs/stable/elastic/run.html
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))
 RANK = int(os.getenv('RANK', -1))
 WORLD_SIZE = int(os.getenv('WORLD_SIZE', 1))
@@ -146,7 +140,6 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
         freeze) > 1 else range(freeze[0]))]  # layers to freeze
     for k, v in model.named_parameters():
         v.requires_grad = True  # train all layers
-        # v.register_hook(lambda x: torch.nan_to_num(x))  # NaN to 0 (commented for erratic training results)
         if any(x in k for x in freeze):
             LOGGER.info(f'freezing {k}')
             v.requires_grad = False
@@ -175,7 +168,6 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     else:
         def lf(x): return (1 - x / epochs) * \
             (1.0 - hyp['lrf']) + hyp['lrf']  # linear
-    # plot_lr_scheduler(optimizer, scheduler, epochs)
     scheduler = lr_scheduler.LambdaLR(optimizer, lr_lambda=lf)
 
     # EMA
@@ -293,10 +285,6 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
             dataset.indices = random.choices(
                 range(dataset.n), weights=iw, k=dataset.n)  # rand weighted idx
 
-        # Update mosaic border (optional)
-        # b = int(random.uniform(0.25 * imgsz, 0.75 * imgsz + gs) // gs * gs)
-        # dataset.mosaic_border = [b - imgsz, -b]  # height, width borders
-
         mloss = torch.zeros(3, device=device)  # mean losses
         if RANK != -1:
             train_loader.sampler.set_epoch(epoch)
@@ -318,7 +306,6 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
             # Warmup
             if ni <= nw:
                 xi = [0, nw]  # x interp
-                # compute_loss.gr = np.interp(ni, xi, [0.0, 1.0])  # iou loss ratio (obj_loss = 1.0 or iou)
                 accumulate = max(1, np.interp(
                     ni, xi, [1, nbs / batch_size]).round())
                 for j, x in enumerate(optimizer.param_groups):
@@ -495,7 +482,7 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
         check_requirements()
 
     # Resume (from specified or most recent last.pt)
-    if opt.hyp:
+    if opt.hyp and isinstance(opt.hyp, str):
         opt.hyp = get_meghnad_repo_dir() / 'yolov5' / opt.hyp
 
     if opt.resume and not check_comet_resume(opt) and not opt.evolve:
@@ -513,9 +500,10 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
         if is_url(opt_data):
             opt.data = check_file(opt_data)  # avoid HUB resume auth timeout
     else:
-        opt.data, opt.cfg, opt.hyp, opt.weights, opt.project = \
-            check_file(opt.data), check_yaml(opt.cfg), check_yaml(
-                opt.hyp), str(opt.weights), str(opt.project)  # checks
+        opt.data, opt.cfg, opt.weights, opt.project = \
+            check_file(opt.data), check_yaml(opt.cfg), str(opt.weights), str(opt.project)  # checks
+        if isinstance(opt.hyp, str):
+            opt.hyp = check_yaml(opt.hyp)
         assert len(opt.cfg) or len(
             opt.weights), 'either --cfg or --weights must be specified'
         if opt.evolve:
@@ -545,6 +533,4 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
             backend="nccl" if dist.is_nccl_available() else "gloo")
 
     # Train
-    # if not opt.evolve:
-    # train(opt.hyp, opt, device, callbacks)
     return opt.hyp, opt, device, callbacks

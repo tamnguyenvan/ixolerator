@@ -1,9 +1,13 @@
 import unittest
-from meghnad.core.cv.obj_det.src.tensorflow.train import TFObjDetTrn
-from meghnad.core.cv.obj_det.src.tensorflow.inference import TFObjDetPred
-from meghnad.core.cv.obj_det.src.pytorch.train.train import PytorchObjDetTrn
-from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PytorchObjDetPred
-from meghnad.core.cv.obj_det.cfg import ObjDetConfig
+from meghnad.core.cv.obj_det.src.tf.trn import TFObjDetTrn
+from meghnad.core.cv.obj_det.src.tf.inference import TFObjDetPred
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn import PyTorchObjDetTrn
+from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PyTorchObjDetPred
+
+import tensorflow as tf
+gpus = tf.config.list_physical_devices('GPU')
+if gpus:
+    tf.config.set_visible_devices(gpus, 'GPU')
 
 
 def test_case1():
@@ -12,7 +16,7 @@ def test_case1():
     path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset'
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
-    success, best_model_path = trainer.train(epochs=10)
+    success, best_model_path = trainer.trn(epochs=10)
     print('Best model path:', best_model_path)
 
 
@@ -22,11 +26,11 @@ def test_case2():
     path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset'
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
-    success, best_model_path = trainer.train(epochs=10)
+    success, best_model_path = trainer.trn(epochs=10)
 
     img_path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset\\images\\000a514fb1546570.jpg'
     predictor = TFObjDetPred(saved_dir=best_model_path)
-    ret_value, (boxes, classes, scores) = predictor.predict(img_path)
+    ret_value, (boxes, classes, scores) = predictor.pred(img_path)
     print(boxes.shape, classes.shape, scores.shape)
 
 
@@ -50,62 +54,62 @@ def test_case3():
         }
     }
     trainer.config_connectors(path, augmentations)
-    trainer.train(epochs=10)
+    trainer.trn(epochs=10)
 
 
 def test_case4():
-    """Test training pipeline + fine tune hypyerparameters"""
+    """Test training pipeline + fine tune hyper parameters"""
     settings = ['light']
     path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset'
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
-    trainer.train(
-        hyp={'optimizer': 'Adam', 'learning_rate': 1e-4}
+    trainer.trn(
+        hyp={'optimizer': 'Adam', 'learning_rate': 1e-4, 'weight_decay': 1e-5}
     )
 
 
 def test_case5():
-    """Pytorch YOLOv5/v7 data loaders (internal test)"""
-    path = './coco128'
-    cfg = ObjDetConfig()
-    model_cfg = cfg.get_model_cfg('YOLOv7')
-
-    data_loader = build_loader(
-        model_cfg, path=path, imgsz=640, batch_size=4, stride=32)
-
-
-def test_case6():
     """Pytorch training pipeline test"""
     path = './coco128.yml'
     settings = ['light']
-    trainer = PytorchObjDetTrn(settings)
+    trainer = PyTorchObjDetTrn(settings)
     trainer.config_connectors(path)
-    trainer.train(
+    trainer.trn(
         batch_size=1,
         epochs=10,
-        imgsz=640
+        imgsz=640,
+        device='0'
     )
 
 
-def test_case7():
+def test_case6():
     """Pytorch testing pipeline test"""
     path = './coco128.yml'
     settings = ['light']
-    trainer = PytorchObjDetTrn(settings)
+    trainer = PyTorchObjDetTrn(settings)
     trainer.config_connectors(path)
-    best_path = trainer.train(
+    success, best_path = trainer.trn(
         batch_size=1,
-        epochs=2,
-        imgsz=640
+        epochs=1,
+        imgsz=640,
+        device='0',
+        hyp={'fliplr': 0.4, 'lr0': 0.02,
+             'lrf': 0.2, 'weight_decay': 0.0003,
+             'translate': 0.2, 'scale': 0.8,
+             'optimizer': 'Adam'}
     )
 
-    tester = PytorchObjDetPred(best_path)
+    print('=' * 50)
+    print('====== Path to the best model:', best_path)
+    print('=' * 50)
+
+    tester = PyTorchObjDetPred(best_path)
     img_path = './coco128/images/train2017/000000000009.jpg'
-    tester.predict(img_path)
+    tester.pred(img_path)
 
 
 def _perform_tests():
-    test_case7()
+    test_case6()
 
 
 if __name__ == '__main__':

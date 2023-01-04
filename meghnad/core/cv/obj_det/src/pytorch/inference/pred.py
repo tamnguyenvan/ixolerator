@@ -1,12 +1,9 @@
-from pathlib import Path
 from typing import Optional, Tuple, Any
-import argparse
 import time
 from pathlib import Path
 
 import cv2
 import torch
-import torch.backends.cudnn as cudnn
 from numpy import random
 
 from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
@@ -16,12 +13,11 @@ from meghnad.repo.obj_det.yolov7.utils.general import check_img_size, non_max_su
 from meghnad.repo.obj_det.yolov7.utils.plots import plot_one_box
 from meghnad.repo.obj_det.yolov7.utils.torch_utils import select_device, time_synchronized
 
-from utils import ret_values
 from utils.log import Log
-from utils.common_defs import class_header
+from utils.common_defs import class_header, method_header
 
 
-__all__ = ['PytorchObjDetPred']
+__all__ = ['PyTorchObjDetPred']
 
 log = Log()
 
@@ -33,14 +29,23 @@ class Opt:
 @class_header(
     description='''
     Class for Object detection predictions''')
-class PytorchObjDetPred:
+class PyTorchObjDetPred:
     def __init__(self,
                  weights: str,
                  output_dir: Optional[str] = './results') -> None:
         self.weights = weights
         self.output_dir = output_dir
 
-    def predict(self,
+    @method_header(
+        description="""Curates directories, runs inference, performs post processing and processes detections
+        """,
+        arguments="""
+            input: image
+            conf_thres: Minimum confidence required for the object to be shown as detection
+            iou_thres: Intersection over Union Threshold
+        """,
+        returns="""Prints out the time taken for actual inferencing, and then the post processing steps""")
+    def pred(self,
                 input: Any,
                 conf_thres: float = 0.25,
                 iou_thres: float = 0.45) -> Tuple:

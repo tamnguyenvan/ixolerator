@@ -13,9 +13,9 @@ import cv2
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
-from meghnad.core.cv.obj_det.src.tensorflow.inference.vis_utils import draw_bboxes
-from meghnad.core.cv.obj_det.src.tensorflow.model_loader.utils import decode, compute_nms
-from meghnad.core.cv.obj_det.src.tensorflow.data_loader import TFObjDetDataLoader
+from meghnad.core.cv.obj_det.src.tf.inference.pred_utils import draw_bboxes
+from meghnad.core.cv.obj_det.src.tf.model_loader.utils import decode, compute_nms
+from meghnad.core.cv.obj_det.src.tf.data_loader import TFObjDetDataLoader
 
 log = Log()
 

@@ -9,13 +9,13 @@ import torch
 import yaml
 from tqdm import tqdm
 
-from models.experimental import attempt_load
-from utils.datasets import create_dataloader
-from utils.general import coco80_to_coco91_class, check_dataset, check_file, check_img_size, check_requirements, \
+from meghnad.repo.obj_det.yolov7.models.experimental import attempt_load
+from meghnad.repo.obj_det.yolov7.utils.datasets import create_dataloader
+from meghnad.repo.obj_det.yolov7.utils.general import coco80_to_coco91_class, check_dataset, check_file, check_img_size, check_requirements, \
     box_iou, non_max_suppression, scale_coords, xyxy2xywh, xywh2xyxy, set_logging, increment_path, colorstr
-from utils.metrics import ap_per_class, ConfusionMatrix
-from utils.plots import plot_images, output_to_target, plot_study_txt
-from utils.torch_utils import select_device, time_synchronized, TracedModel
+from meghnad.repo.obj_det.yolov7.utils.metrics import ap_per_class, ConfusionMatrix
+from meghnad.repo.obj_det.yolov7.utils.plots import plot_images, output_to_target, plot_study_txt
+from meghnad.repo.obj_det.yolov7.utils.torch_utils import select_device, time_synchronized, TracedModel
 
 
 def test(data,

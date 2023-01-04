@@ -42,6 +42,20 @@ _obj_det_cfg = {
             'feature_map_sizes': [19, 10, 5, 3, 2, 1],
             'scales': [0.1, 0.2, 0.375, 0.55, 0.725, 0.9, 1.05],
             'neg_ratio': 3,
+            'augmentations': {
+                'train':
+                {
+                    'resize': {'width': 300, 'height': 300},
+                    'random_fliplr': {'p': 0.5},
+                    'random_brightness': {'p': 0.2},
+                    'normalize': {'mean': (0.485, 0.456, 0.406), 'std': (0.229, 0.224, 0.225)}
+                },
+                'test':
+                {
+                    'resize': {'width': 300, 'height': 300},
+                    'normalize': {'mean': (0.485, 0.456, 0.406), 'std': (0.229, 0.224, 0.225)}
+                }
+            },
             'hyp_params':
             {
                 'batch_size': 8,
@@ -160,7 +174,6 @@ _obj_det_cfg = {
             'noautoanchor': False,
             'noplots': False,
             'evolve': False,
-            'bucket': '',
             'cache': '',
             'image_weights': False,
             'multi_scale': False,
@@ -169,7 +182,7 @@ _obj_det_cfg = {
             'sync_bn': False,
             'workers': 8,
             'project': 'runs/train',
-            'name': 'exp',
+            'name': 'yolov5s',
             'exist_ok': False,
             'quad': False,
             'cos_lr': False,
@@ -178,13 +191,8 @@ _obj_det_cfg = {
             'freeze': [0],
             'save_period': -1,
             'seed': 0,
-            'local_rank': -1,
-            'entity': None,
-            'upload_dataset': False,
-            'bbox_interval': -1,
-            'artifact_alias': 'lastest'
         },
-        'YOLOv7': {
+        'YOLOv7Light': {
             'arch': 'yolov7',
             'weights': 'yolov7.pt',
             'img_size': [640],
@@ -193,9 +201,8 @@ _obj_det_cfg = {
             'rect': False,
             'resume': False,
             'nosave': False,
-            'noval': False,
             'noautoanchor': False,
-            'noplots': False,
+            'notest': False,
             'evolve': False,
             'bucket': '',
             'cache_images': False,
@@ -206,27 +213,53 @@ _obj_det_cfg = {
             'sync_bn': False,
             'workers': 8,
             'project': 'runs/train',
-            'name': 'exp',
+            'name': 'yolov7_light',
             'exist_ok': False,
             'quad': False,
             'linear_lr': False,
             'label_smoothing': 0.0,
-            'patience': 100,
             'freeze': [0],
             'save_period': -1,
-            'seed': 0,
             'local_rank': -1,
-            'entity': None,
-            'upload_dataset': False,
-            'bbox_interval': -1,
-            'artifact_alias': 'lastest',
+            'v5_metric': False
+        },
+        'YOLOv7Large': {
+            'arch': 'yolov7',
+            'weights': 'yolov7.pt',
+            'img_size': [1280],
+            'cfg': '',
+            'hyp': 'data/hyp.scratch.p5.yaml',
+            'rect': False,
+            'resume': False,
+            'nosave': False,
+            'noautoanchor': False,
+            'notest': False,
+            'evolve': False,
+            'bucket': '',
+            'cache_images': False,
+            'image_weights': False,
+            'multi_scale': False,
+            'single_cls': False,
+            'adam': False,
+            'sync_bn': False,
+            'workers': 8,
+            'project': 'runs/train',
+            'name': 'yolov7_large',
+            'exist_ok': False,
+            'quad': False,
+            'linear_lr': False,
+            'label_smoothing': 0.0,
+            'freeze': [0],
+            'save_period': -1,
+            'local_rank': -1,
             'v5_metric': False
         }
     },
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
-        'light_models': ['YOLOv7']
+        'light_models': ['YOLOv5', 'YOLOv7Light'],
+        'large_models': ['YOLOv7Large']
     }
 }
 

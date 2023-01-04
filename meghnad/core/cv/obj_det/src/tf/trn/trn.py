@@ -7,17 +7,17 @@ from typing import List, Tuple, Union, Callable, Dict
 import numpy as np
 import tensorflow as tf
 
-from meghnad.core.cv.obj_det.src.tensorflow.data_loader import TFObjDetDataLoader
-from meghnad.core.cv.obj_det.src.tensorflow.model_loader.losses import Loss
+from meghnad.core.cv.obj_det.src.tf.data_loader import TFObjDetDataLoader
+from meghnad.core.cv.obj_det.src.tf.model_loader.losses import Loss
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-from meghnad.core.cv.obj_det.src.tensorflow.train.select_model import TFObjDetSelectModel
-from meghnad.core.cv.obj_det.src.tensorflow.train.eval import TFObjDetEval
-from meghnad.core.cv.obj_det.src.tensorflow.train.train_utils import get_optimizer
+from meghnad.core.cv.obj_det.src.tf.trn.select_model import TFObjDetSelectModel
+from meghnad.core.cv.obj_det.src.tf.trn.eval import TFObjDetEval
+from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_optimizer
 
 
 __all__ = ['TFObjDetTrn']
@@ -142,7 +142,7 @@ class TFObjDetTrn:
                 resume_path: The path/checkpoint from where the training should be resumed
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
-    def train(self,
+    def trn(self,
               epochs: int = 10,
               checkpoint_dir: str = './checkpoints',
               logdir: str = './training_logs',
@@ -165,7 +165,6 @@ class TFObjDetTrn:
         for i, model in enumerate(self.model_selection.models):
             data_loader = self.data_loaders[i]
             model_cfg = self.model_cfgs[i]
-            # hyp = model_cfg['hyp_params']
             opt = hyp.get('optimizer', 'Adam')
             weight_decay = hyp.get('weight_decay', 1e-5)
 
@@ -279,9 +278,6 @@ class TFObjDetTrn:
                 # Save the best
                 if map > best_map_over_all_models:
                     best_map_over_all_models = map
-                    # self.best_ckpt_path = ckpt.write(os.path.join(
-                    #     checkpoint_dir, f'{model_name}_best.ckpt'))
-                    # print(f'Saved best model as {self.best_ckpt_path}')
 
                     self.best_model_path = os.path.join(
                         checkpoint_dir, f'best_saved_model', model_name)

@@ -1,4 +1,4 @@
-# Google utils: https://cloud.google.com/storage/docs/reference/libraries
+# Google trn_utils: https://cloud.google.com/storage/docs/reference/libraries
 
 import os
 import platform
@@ -16,7 +16,7 @@ def gsutil_getsize(url=''):
     return eval(s.split(' ')[0]) if len(s) else 0  # bytes
 
 
-def attempt_download(file, repo='WongKinYiu/yolov7'):
+def attempt_download(file, repo='prudhvir36/yolo_weights'):
     # Attempt file download if does not exist
     file = Path(str(file).strip().replace("'", '').lower())
 
@@ -26,9 +26,10 @@ def attempt_download(file, repo='WongKinYiu/yolov7'):
             assets = [x['name'] for x in response['assets']]  # release assets
             tag = response['tag_name']  # i.e. 'v1.0'
         except:  # fallback plan
-            assets = ['yolov7.pt', 'yolov7-tiny.pt', 'yolov7x.pt', 'yolov7-d6.pt', 'yolov7-e6.pt', 
+            assets = ['yolov7.pt', 'yolov7-tiny.pt', 'yolov7x.pt', 'yolov7-d6.pt', 'yolov7-e6.pt',
                       'yolov7-e6e.pt', 'yolov7-w6.pt']
-            tag = subprocess.check_output('git tag', shell=True).decode().split()[-1]
+            # tag = subprocess.check_output('git tag', shell=True).decode().split()[-1]
+            tag = 'v0.1'
 
         name = file.name
         if name in assets:
@@ -54,7 +55,7 @@ def attempt_download(file, repo='WongKinYiu/yolov7'):
 
 
 def gdrive_download(id='', file='tmp.zip'):
-    # Downloads a file from Google Drive. from yolov7.utils.google_utils import *; gdrive_download()
+    # Downloads a file from Google Drive. from yolov7.trn_utils.google_utils import *; gdrive_download()
     t = time.time()
     file = Path(file)
     cookie = Path('cookie')  # gdrive cookie

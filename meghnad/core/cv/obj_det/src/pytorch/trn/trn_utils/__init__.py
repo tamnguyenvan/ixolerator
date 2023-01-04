@@ -1,6 +1,8 @@
 from typing import Dict, Callable
+import yaml
 
 from utils.common_defs import class_header, method_header
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_meghnad_repo_dir
 
 
 @method_header(
@@ -12,11 +14,11 @@ from utils.common_defs import class_header, method_header
         A training function.''')
 def get_train_pipeline(arch: str) -> Callable:
     if arch == 'yolov5':
-        from meghnad.core.cv.obj_det.src.pytorch.train.utils.yolov5_train_utils import train as train_yolov5
-        return train_yolov5
+        from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.trn_utils_v5 import train as trn_yolov5
+        return trn_yolov5
     elif arch == 'yolov7':
-        from meghnad.core.cv.obj_det.src.pytorch.train.utils.yolov7_train_utils import train as train_yolov7
-        return train_yolov7
+        from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.trn_utils_v7 import train as trn_yolov7
+        return trn_yolov7
 
 
 @class_header(description='''Config object.''')
@@ -41,8 +43,20 @@ class Opt:
 def get_train_opt(model_cfg: Dict, **kwargs) -> object:
     opt = Opt()
     for k, v in model_cfg.items():
-        setattr(opt, k, v)
+        if k == 'hyp' and isinstance(v, str):
+            hyp_filepath = get_meghnad_repo_dir() / model_cfg['arch'] / v
+            with open(hyp_filepath, errors='ignore') as f:
+                hyp = yaml.safe_load(f)  # load hyps dict
+                setattr(opt, 'hyp', hyp)
+        else:
+            setattr(opt, k, v)
 
     for k, v in kwargs.items():
-        setattr(opt, k, v)
+        if k == 'hyp' and v:
+            if getattr(opt, 'hyp'):
+                opt.hyp.update(v)
+            else:
+                opt.hyp = v
+        else:
+            setattr(opt, k, v)
     return opt

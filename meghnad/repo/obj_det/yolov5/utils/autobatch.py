@@ -1,6 +1,6 @@
 # YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
-Auto-batch utils
+Auto-batch trn_utils
 """
 
 from copy import deepcopy
@@ -22,7 +22,7 @@ def autobatch(model, imgsz=640, fraction=0.8, batch_size=16):
     # Automatically estimate best YOLOv5 batch size to use `fraction` of available CUDA memory
     # Usage:
     #     import torch
-    #     from utils.autobatch import autobatch
+    #     from trn_utils.autobatch import autobatch
     #     model = torch.hub.load('ultralytics/yolov5', 'yolov5s', autoshape=False)
     #     print(autobatch(model))
 

@@ -3,7 +3,7 @@ import logging
 import sys
 from copy import deepcopy
 
-sys.path.append('./')  # to run '$ python *.py' files in subdirectories
+# sys.path.append('./')  # to run '$ python *.py' files in subdirectories
 logger = logging.getLogger(__name__)
 import torch
 from meghnad.repo.obj_det.yolov7.models.common import *
@@ -931,7 +931,7 @@ if __name__ == '__main__':
     # y = model(img, profile=True)
 
     # Tensorboard
-    # from torch.utils.tensorboard import SummaryWriter
+    # from torch.trn_utils.tensorboard import SummaryWriter
     # tb_writer = SummaryWriter()
     # print("Run 'tensorboard --logdir=models/runs' to view tensorboard at http://localhost:6006/")
     # tb_writer.add_graph(model.model, img)  # add model to tensorboard

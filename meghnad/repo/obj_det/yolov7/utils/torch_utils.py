@@ -1,4 +1,4 @@
-# YOLOR PyTorch utils
+# YOLOR PyTorch trn_utils
 
 import datetime
 import logging
