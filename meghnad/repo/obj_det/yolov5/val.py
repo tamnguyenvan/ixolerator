@@ -134,7 +134,6 @@ def run(
         device = select_device(device, batch_size=batch_size)
 
         # Directories
-        # save_dir = increment_path(Path(project) / name, exist_ok=exist_ok)  # increment run
         save_dir = Path(project) / name
         if not os.path.isdir(save_dir):
             os.makedirs(save_dir, exist_ok=True)

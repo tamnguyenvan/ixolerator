@@ -10,6 +10,7 @@ if gpus:
     tf.config.set_visible_devices(gpus, 'GPU')
 
 
+
 def test_case1():
     """Training pipeline"""
     settings = ['light']
@@ -60,10 +61,11 @@ def test_case3():
 def test_case4():
     """Test training pipeline + fine tune hyper parameters"""
     settings = ['light']
-    path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset'
+    path = 'data/grocery_dataset'
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
     trainer.trn(
+        epochs=1,
         hyp={'optimizer': 'Adam', 'learning_rate': 1e-4, 'weight_decay': 1e-5}
     )
 
@@ -84,7 +86,7 @@ def test_case5():
 
 def test_case6():
     """Pytorch testing pipeline test"""
-    path = './coco128.yml'
+    path = 'data/coco128.yml'
     settings = ['light']
     trainer = PyTorchObjDetTrn(settings)
     trainer.config_connectors(path)
@@ -104,7 +106,7 @@ def test_case6():
     print('=' * 50)
 
     tester = PyTorchObjDetPred(best_opt, best_path)
-    img_path = './coco128/images/train2017/000000000009.jpg'
+    img_path = 'D:/meg-obj-det/data/coco128/images/train2017/'
     tester.pred(img_path)
 
 

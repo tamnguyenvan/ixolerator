@@ -167,11 +167,12 @@ def check_file(file):
         return files[0]  # return file
 
 
-def check_dataset(dict):
+def check_dataset(dict, sync_dir: str = '.'):
     # Download dataset if not found locally
+    sync_dir = Path(sync_dir)
     val, s = dict.get('val'), dict.get('download')
     if val and len(val):
-        val = [Path(x).resolve()
+        val = [sync_dir / Path(x)
                for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
             print('\nWARNING: Dataset not found, nonexistent paths: %s' %

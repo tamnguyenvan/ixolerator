@@ -258,7 +258,7 @@ _obj_det_cfg = {
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
-        'light_models': ['YOLOv5', 'YOLOv7Light'],
+        'light_models': ['YOLOv7Light'],
         'large_models': ['YOLOv7Large']
     }
 }

@@ -38,6 +38,7 @@ from meghnad.repo.obj_det.yolov7.utils.loss import ComputeLoss, ComputeLossOTA
 from meghnad.repo.obj_det.yolov7.utils.plots import plot_images, plot_results
 from meghnad.repo.obj_det.yolov7.utils.torch_utils import ModelEMA, select_device, intersect_dicts, torch_distributed_zero_first, is_parallel
 from meghnad.repo.obj_det.yolov7.utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_sync_dir
 
 from utils.common_defs import method_header
 
@@ -58,6 +59,8 @@ def train(opt: object) -> str:
                 ', '.join(f'{k}={v}' for k, v in hyp.items()))
     save_dir, epochs, batch_size, total_batch_size, weights, rank, freeze = \
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.total_batch_size, opt.weights, opt.global_rank, opt.freeze
+
+    save_dir = Path(opt.sync_dir) / save_dir
 
     # Directories
     wdir = save_dir / 'weights'
@@ -122,9 +125,9 @@ def train(opt: object) -> str:
         model = Model(opt.cfg, ch=3, nc=nc, anchors=hyp.get(
             'anchors')).to(device)  # create
     with torch_distributed_zero_first(rank):
-        check_dataset(data_dict)  # check
-    train_path = data_dict['train']
-    test_path = data_dict['val']
+        check_dataset(data_dict, opt.sync_dir)  # check
+    train_path = Path(opt.sync_dir) / data_dict['train']
+    test_path = Path(opt.sync_dir) / data_dict['val']
 
     # Freeze
     freeze = [f'model.{x}.' for x in (freeze if len(freeze) > 1 else range(
@@ -467,6 +470,7 @@ def train(opt: object) -> str:
             if not opt.notest or final_epoch:  # Calculate mAP
                 wandb_logger.current_epoch = epoch + 1
                 results, maps, times = test.test(data_dict,
+                                                 opt.sync_dir,
                                                  batch_size=batch_size * 2,
                                                  imgsz=imgsz_test,
                                                  model=ema.ema,
@@ -592,6 +596,10 @@ def train(opt: object) -> str:
     returns='''
     A tuple of essential arguments for the training pipeline''')
 def _build_opt(opt: Dict) -> Tuple:
+    opt.sync_dir = get_sync_dir()
+    print('sync_dir', opt.sync_dir)
+    opt.data = os.path.join(opt.sync_dir, opt.data)
+
     if opt.hyp and isinstance(opt.hyp, str):
         opt.hyp = get_meghnad_repo_dir() / 'yolov7' / opt.hyp
 
@@ -627,7 +635,7 @@ def _build_opt(opt: Dict) -> Tuple:
         opt.name = 'evolve' if opt.evolve else opt.name
         # opt.save_dir = increment_path(Path(
         #     opt.project) / opt.name, exist_ok=opt.exist_ok | opt.evolve)  # increment run
-        opt.save_dir = opt.project / opt.name
+        opt.save_dir = Path(opt.project) / opt.name
         if not os.path.isdir(opt.save_dir):
             os.makedirs(opt.save_dir, exist_ok=True)
 

@@ -1,4 +1,7 @@
-from ixolerator.connectors.aws.s3.config import S3Config  # TODO:
+import sys
+
+sys.path.append('D:/01-08-23/ixolerator')
+from connectors.aws.s3.config import S3Config
 
 import subprocess
 import os
@@ -42,15 +45,13 @@ class s3_mount():
     # Creates mount drive based on the rclone config file values''')
     def create_mount(self):
         config = self.configs.get_s3_configs()
-        src_dir = os.path.abspath(os.path.dirname(__file__))
-        s3_config_dir = os.path.abspath((os.path.join(src_dir, '..\s3')))
 
-        cmd = f'cp {s3_config_dir}/rclone.conf ' + config['installlation_location']
+        cmd = 'cp ./connectors/aws/s3/rclone.conf ' + config['installlation_location']
         print("line 45", cmd)
         subprocess.run(["powershell", "-Command", cmd], capture_output=True)
 
         cmd = config['installlation_location'] + 'rclone mount ' + config['bucket_name'] + ':' + config[
-            'bucket_name'] + '/ ' + config['drive_name'] + ':ixolerator-cloud\ --vfs-cache-mode full'
+            'bucket_name'] + '/ ' + config['drive_name'] + f":/{config['bucket_name']} --vfs-cache-mode full"
         print("line 48", cmd)
         subprocess.run(["powershell", "-Command", cmd], capture_output=True)
 
@@ -67,3 +68,4 @@ if __name__ == '__main__':
     s3_mount = s3_mount()
     s3_mount.run_script()
     s3_mount.create_mount()
+

@@ -3,7 +3,7 @@
 s3_cfg =\
 {
     'drive_name': 'D',
-    'bucket_name': 'ixolerator-cloud',
+    'bucket_name': 'meg-obj-det',
     'rclone_download_link': 'https://downloads.rclone.org/v1.55.1/rclone-v1.55.1-windows-amd64.zip',
     'installation_folder_name': 'rclone1',
     'installlation_location': 'C:/rclone1/'

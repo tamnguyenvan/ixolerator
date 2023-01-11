@@ -17,7 +17,7 @@ from utils.common_defs import class_header, method_header
 
 from meghnad.core.cv.obj_det.src.tf.trn.select_model import TFObjDetSelectModel
 from meghnad.core.cv.obj_det.src.tf.trn.eval import TFObjDetEval
-from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_optimizer
+from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_optimizer, get_sync_dir
 
 
 __all__ = ['TFObjDetTrn']
@@ -117,6 +117,7 @@ class TFObjDetTrn:
     def __init__(self, settings: List[str]) -> None:
         self.settings = settings
         self.model_cfgs, self.data_cfgs = load_config_from_settings(settings)
+        print(self.model_cfgs)
         self.model_selection = TFObjDetSelectModel(self.model_cfgs)
         self.data_loaders = []
         self.best_model_path = None
@@ -129,6 +130,8 @@ class TFObjDetTrn:
                 the directory in case data exists in multiple files in a directory structure)
                 ''')
     def config_connectors(self, data_path: str, augmentations: Dict = None) -> None:
+        sync_dir = get_sync_dir()
+        data_path = os.path.join(sync_dir, data_path)
         self.data_loaders = [TFObjDetDataLoader(data_path, data_cfg, model_cfg, augmentations)
                              for data_cfg, model_cfg in zip(self.data_cfgs, self.model_cfgs)]
 
@@ -144,8 +147,8 @@ class TFObjDetTrn:
                 ''')
     def trn(self,
               epochs: int = 10,
-              checkpoint_dir: str = './checkpoints',
-              logdir: str = './training_logs',
+              checkpoint_dir: str = 'checkpoints',
+              logdir: str = 'training_logs',
               resume_path: str = None,
               print_every: int = 10,
               **hyp) -> Tuple:
@@ -160,6 +163,10 @@ class TFObjDetTrn:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Epochs value must be a positive integer")
             return ret_values.IXO_RET_INVALID_INPUTS
+
+        sync_dir = get_sync_dir()
+        checkpoint_dir = os.path.join(sync_dir, checkpoint_dir)
+        logdir = os.path.join(sync_dir, logdir)
 
         best_map_over_all_models = -1.0
         for i, model in enumerate(self.model_selection.models):

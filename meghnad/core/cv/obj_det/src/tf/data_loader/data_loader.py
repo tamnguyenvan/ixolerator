@@ -257,7 +257,9 @@ class TFObjDetDataLoader:
         returns='''
             returns dataset and number of samples in the form of tensor records''')
     def _read_data(self, image_dir, annotation_file, dataset='train'):
-        tfrecord_file = f'{dataset}.tfrecord'
+        tfrecord_dir = os.path.dirname(annotation_file)
+        tfrecord_file = os.path.join(tfrecord_dir, f'{dataset}.tfrecord')
+        print('tfrecord_file', tfrecord_file)
         dataset, num_samples = get_tfrecord_dataset(
             image_dir, annotation_file, tfrecord_file)
         return dataset, num_samples

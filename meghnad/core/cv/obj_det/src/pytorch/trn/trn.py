@@ -9,6 +9,8 @@ from utils.common_defs import class_header, method_header
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils import get_train_pipeline, get_train_opt
 
+from connectors.aws.s3.config import  S3Config
+
 
 @method_header(
     description="""Combines precision, recall, mAP@0.5, and mAP@0.5:0.95 to final metric.
@@ -77,7 +79,7 @@ class PyTorchObjDetTrn:
                 the directory in case data exists in multiple files in a directory structure)
                 ''')
     def config_connectors(self, data_path: str) -> None:
-        self.data_path = os.path.abspath(data_path)
+        self.data_path = data_path
 
     @method_header(
         description='''

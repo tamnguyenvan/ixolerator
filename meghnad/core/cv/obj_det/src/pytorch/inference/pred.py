@@ -1,3 +1,4 @@
+import os
 from typing import Optional, Tuple, Any
 import time
 from pathlib import Path
@@ -12,6 +13,7 @@ from meghnad.repo.obj_det.yolov7.utils.general import check_img_size, non_max_su
     scale_coords, set_logging, increment_path
 from meghnad.repo.obj_det.yolov7.utils.plots import plot_one_box
 from meghnad.repo.obj_det.yolov7.utils.torch_utils import select_device, time_synchronized
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_sync_dir
 
 from utils.log import Log
 from utils.common_defs import class_header, method_header
@@ -56,8 +58,6 @@ class PyTorchObjDetPred:
         if self.half:
             self.model.half()  # to FP16
 
-        # Load dataset
-        dataset = LoadImages(input, img_size=self.imgsz, stride=self.stride)
         if self.device.type != 'cpu':
             self.model(torch.zeros(1, 3, self.imgsz, self.imgsz).to(self.device).type_as(
                 next(self.model.parameters())))  # run once
@@ -80,7 +80,9 @@ class PyTorchObjDetPred:
         half = self.half
         model = self.model
         imgsz = self.imgsz
-        dataset = self.dataset
+
+        # Load dataset
+        dataset = LoadImages(input, img_size=self.imgsz, stride=self.stride)
 
         save_img = not opt.nosave and not input.endswith(
             '.txt')  # save inference images
@@ -89,7 +91,8 @@ class PyTorchObjDetPred:
 
         # Directories
         project = 'runs/test'
-        save_dir = Path(project) / opt.name
+        sync_dir = Path(get_sync_dir())
+        save_dir = sync_dir / project / opt.name
         save_dir.mkdir(parents=True, exist_ok=True)
 
         # Get names and colors
@@ -114,17 +117,18 @@ class PyTorchObjDetPred:
                 old_img_h = img.shape[2]
                 old_img_w = img.shape[3]
                 for i in range(3):
-                    model(img, augment=opt.augment)[0]
+                    model(img, augment=False)[0]
 
             # Inference
             t1 = time_synchronized()
             with torch.no_grad():   # Calculating gradients would cause a GPU memory leak
-                pred = model(img, augment=opt.augment)[0]
+                pred = model(img, augment=False)[0]
             t2 = time_synchronized()
 
             # Apply NMS
-            pred = non_max_suppression(
-                pred, conf_thres, iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
+            # pred = non_max_suppression(
+            #     pred, conf_thres, iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
+            pred = non_max_suppression(pred, conf_thres, iou_thres)
             t3 = time_synchronized()
 
             # Process detections

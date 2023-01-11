@@ -16,6 +16,7 @@ from utils.common_defs import class_header, method_header
 from meghnad.core.cv.obj_det.src.tf.inference.pred_utils import draw_bboxes
 from meghnad.core.cv.obj_det.src.tf.model_loader.utils import decode, compute_nms
 from meghnad.core.cv.obj_det.src.tf.data_loader import TFObjDetDataLoader
+from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_sync_dir
 
 log = Log()
 
@@ -50,13 +51,15 @@ class TFObjDetEval:
              score_threshold: float = 0.4,
              nms_threshold: float = 0.5,
              max_predictions: int = 100,
-             image_out_dir: str = './results',
+             image_out_dir: str = 'results',
              draw_predictions: bool = False) -> Tuple[float]:
         if self.model is None:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Model is not fitted yet")
             return ret_values.IXO_RET_INVALID_INPUTS
 
+        sync_dir = get_sync_dir()
+        image_out_dir = os.path.join(sync_dir, image_out_dir)
         results = {'annotations': []}
         ann_id = 0
         if phase == 'validation':

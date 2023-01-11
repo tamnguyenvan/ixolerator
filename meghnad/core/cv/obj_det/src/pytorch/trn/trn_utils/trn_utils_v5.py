@@ -40,7 +40,7 @@ from meghnad.repo.obj_det.yolov5.utils.metrics import fitness
 from meghnad.repo.obj_det.yolov5.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, select_device, smart_DDP, smart_optimizer,
                                                            smart_resume, torch_distributed_zero_first)
 
-
+from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_sync_dir
 from utils.common_defs import method_header
 
 
@@ -63,6 +63,8 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
         Path(opt.save_dir), opt.epochs, opt.batch_size, opt.weights, opt.single_cls, opt.evolve, opt.data, opt.cfg, \
         opt.resume, opt.noval, opt.nosave, opt.workers, opt.freeze
     callbacks.run('on_pretrain_routine_start')
+
+    save_dir = Path(opt.sync_dir) / save_dir
 
     # Directories
     w = save_dir / 'weights'  # weights dir
@@ -102,7 +104,7 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     cuda = device.type != 'cpu'
     init_seeds(opt.seed + 1 + RANK, deterministic=True)
     with torch_distributed_zero_first(LOCAL_RANK):
-        data_dict = data_dict or check_dataset(data)  # check if None
+        data_dict = data_dict or check_dataset(data, opt.sync_dir)  # check if None
     train_path, val_path = data_dict['train'], data_dict['val']
     nc = 1 if single_cls else int(data_dict['nc'])  # number of classes
     names = {0: 'item'} if single_cls and len(
@@ -475,6 +477,10 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     returns='''
     A tuple of essential arguments for the training pipeline''')
 def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
+    opt.sync_dir = get_sync_dir()
+    print('sync_dir', opt.sync_dir)
+    opt.data = os.path.join(opt.sync_dir, opt.data)
+
     # Checks
     if RANK in {-1, 0}:
         print_args(vars(opt))
@@ -515,9 +521,10 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
             opt.exist_ok, opt.resume = opt.resume, False
         if opt.name == 'cfg':
             opt.name = Path(opt.cfg).stem  # use model.yaml as name
-        opt.save_dir = str(increment_path(
-            Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
-        opt.save_dir = opt.project / opt.name
+        # opt.save_dir = str(increment_path(
+        #     Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
+        # opt.save_dir = opt.project / opt.name
+        opt.save_dir = os.path.join(opt.sync_dir, opt.project, opt.name)
         if not os.path.isdir(opt.save_dir):
             os.makedirs(opt.save_dir, exist_ok=True)
 
