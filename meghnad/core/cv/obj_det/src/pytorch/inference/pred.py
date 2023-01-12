@@ -1,4 +1,4 @@
-import os
+import sys
 from typing import Optional, Tuple, Any
 import time
 from pathlib import Path
@@ -126,8 +126,6 @@ class PyTorchObjDetPred:
             t2 = time_synchronized()
 
             # Apply NMS
-            # pred = non_max_suppression(
-            #     pred, conf_thres, iou_thres, classes=opt.classes, agnostic=opt.agnostic_nms)
             pred = non_max_suppression(pred, conf_thres, iou_thres)
             t3 = time_synchronized()
 
@@ -164,14 +162,19 @@ class PyTorchObjDetPred:
                                          color=colors[int(cls)], line_thickness=1)
 
                 # Print time (inference + NMS)
-                print(
-                    f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
+                log.STATUS(sys._getframe().f_lineno,
+                           __file__, __name__,
+                           f'{s}Done. ({(1E3 * (t2 - t1)):.1f}ms) Inference, ({(1E3 * (t3 - t2)):.1f}ms) NMS')
 
                 # Save results (image with detections)
                 if save_img:
                     if dataset.mode == 'image':
                         cv2.imwrite(save_path, im0)
-                        print(
-                            f" The image with the result is saved in: {save_path}")
+                        log.STATUS(sys._getframe().f_lineno,
+                                   __file__, __name__,
+                                   f" The image with the result is saved in: {save_path}")
 
-        print(f'Done. ({time.time() - t0:.3f}s)')
+        log.STATUS(sys._getframe().f_lineno,
+                   __file__, __name__,
+                   f'Done. ({time.time() - t0:.3f}s)')
+

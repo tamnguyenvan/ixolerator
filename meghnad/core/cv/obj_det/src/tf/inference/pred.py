@@ -12,7 +12,6 @@ from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-
 __all__ = ['TFObjDetPred']
 
 log = Log()
@@ -35,7 +34,9 @@ class TFObjDetPred:
         self.input_shape = metadata['input_shape']
 
         self.model = tf.saved_model.load(saved_dir)
-        print(f'Loaded model from {saved_dir}')
+        log.STATUS(sys._getframe().f_lineno,
+                   __file__, __name__,
+                   f'Loaded model from {saved_dir}')
 
     @method_header(
         description='''
@@ -95,7 +96,7 @@ class TFObjDetPred:
                 image_paths = []
                 for ext in IMAGE_EXTENSIONS:
                     image_paths += list(glob.glob(os.path.join(input,
-                                        f'*{ext}')))
+                                                               f'*{ext}')))
 
                 inputs = []
                 shapes = []

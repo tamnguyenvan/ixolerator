@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from typing import Dict
 
@@ -10,7 +11,6 @@ from meghnad.core.cv.obj_det.src.tf.data_loader.loader_utils import get_tfrecord
 from meghnad.core.cv.obj_det.src.tf.model_loader.anchors import generate_default_boxes
 from meghnad.core.cv.obj_det.src.tf.model_loader.utils import compute_target
 from meghnad.core.cv.obj_det.src.tf.data_loader.transforms import build_transforms
-
 
 __all__ = ['TFObjDetDataLoader']
 
@@ -183,8 +183,8 @@ class TFObjDetDataLoader:
 
         # Training set
         train_dataset, self.train_size = self._read_data(self.connector['trn_data_path'],
-                                                        self.connector['trn_file_path'],
-                                                        dataset='train')
+                                                         self.connector['trn_file_path'],
+                                                         dataset='train')
         train_dataset = train_dataset.shuffle(8 * self.batch_size)
         train_dataset = train_dataset.map(
             lambda x: self._parse_tf_example(x, True), num_parallel_calls=autotune,
@@ -198,8 +198,8 @@ class TFObjDetDataLoader:
 
         # Validation set
         validation_dataset, self.val_size = self._read_data(self.connector['val_data_path'],
-                                                           self.connector['val_file_path'],
-                                                           dataset='val')
+                                                            self.connector['val_file_path'],
+                                                            dataset='val')
         validation_dataset = validation_dataset.map(
             lambda x: self._parse_tf_example(x, False), num_parallel_calls=autotune,
         )
@@ -212,8 +212,8 @@ class TFObjDetDataLoader:
 
         # Testing set
         test_dataset, self.test_size = self._read_data(self.connector['test_data_path'],
-                                                      self.connector['test_file_path'],
-                                                      dataset='test')
+                                                       self.connector['test_file_path'],
+                                                       dataset='test')
         test_dataset = test_dataset.map(
             lambda x: self._parse_tf_example(x, False), num_parallel_calls=autotune,
         )
@@ -259,7 +259,9 @@ class TFObjDetDataLoader:
     def _read_data(self, image_dir, annotation_file, dataset='train'):
         tfrecord_dir = os.path.dirname(annotation_file)
         tfrecord_file = os.path.join(tfrecord_dir, f'{dataset}.tfrecord')
-        print('tfrecord_file', tfrecord_file)
+        log.VERBOSE(sys._getframe().f_lineno,
+                    __file__, __name__,
+                    f'tfrecord_file', tfrecord_file)
         dataset, num_samples = get_tfrecord_dataset(
             image_dir, annotation_file, tfrecord_file)
         return dataset, num_samples

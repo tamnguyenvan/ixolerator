@@ -1,14 +1,18 @@
+import sys
 import unittest
 from meghnad.core.cv.obj_det.src.tf.trn import TFObjDetTrn
 from meghnad.core.cv.obj_det.src.tf.inference import TFObjDetPred
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn import PyTorchObjDetTrn
 from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PyTorchObjDetPred
+from utils.log import Log
+
 
 import tensorflow as tf
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     tf.config.set_visible_devices(gpus, 'GPU')
 
+log = Log()
 
 
 def test_case1():
@@ -18,7 +22,9 @@ def test_case1():
     trainer = TFObjDetTrn(settings=settings)
     trainer.config_connectors(path)
     success, best_model_path = trainer.trn(epochs=10)
-    print('Best model path:', best_model_path)
+    log.VERBOSE(sys._getframe().f_lineno,
+                __file__, __name__,
+                'Best model path:', best_model_path)
 
 
 def test_case2():
@@ -32,7 +38,9 @@ def test_case2():
     img_path = 'C:\\Users\\Prudhvi\\Downloads\\grocery_dataset\\images\\000a514fb1546570.jpg'
     predictor = TFObjDetPred(saved_dir=best_model_path)
     ret_value, (boxes, classes, scores) = predictor.pred(img_path)
-    print(boxes.shape, classes.shape, scores.shape)
+    log.VERBOSE(sys._getframe().f_lineno,
+                __file__, __name__,
+                boxes.shape, classes.shape, scores.shape)
 
 
 def test_case3():
@@ -101,9 +109,15 @@ def test_case6():
              'optimizer': 'Adam'}
     )
 
-    print('=' * 50)
-    print('====== Path to the best model:', best_path)
-    print('=' * 50)
+    log.VERBOSE(sys._getframe().f_lineno,
+                __file__, __name__,
+                '=' * 50)
+    log.VERBOSE(sys._getframe().f_lineno,
+                __file__, __name__,
+                '====== Path to the best model:', best_path)
+    log.VERBOSE(sys._getframe().f_lineno,
+                __file__, __name__,
+                '=' * 50)
 
     tester = PyTorchObjDetPred(best_opt, best_path)
     img_path = 'D:/meg-obj-det/data/coco128/images/train2017/'

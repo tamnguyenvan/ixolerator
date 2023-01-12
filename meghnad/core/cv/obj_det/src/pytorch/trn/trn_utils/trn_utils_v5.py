@@ -1,6 +1,7 @@
 import argparse
 import math
 import os
+import sys
 import random
 import time
 from typing import Tuple
@@ -41,7 +42,10 @@ from meghnad.repo.obj_det.yolov5.utils.torch_utils import (EarlyStopping, ModelE
                                                            smart_resume, torch_distributed_zero_first)
 
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_sync_dir
+from utils.log import Log
 from utils.common_defs import method_header
+
+log = Log()
 
 
 LOCAL_RANK = int(os.getenv('LOCAL_RANK', -1))
@@ -478,7 +482,9 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
     A tuple of essential arguments for the training pipeline''')
 def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
     opt.sync_dir = get_sync_dir()
-    print('sync_dir', opt.sync_dir)
+    log.STATUS(sys._getframe().f_lineno,
+               __file__, __name__,
+               f'sync_dir', opt.sync_dir)
     opt.data = os.path.join(opt.sync_dir, opt.data)
 
     # Checks

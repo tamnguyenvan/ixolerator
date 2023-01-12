@@ -2,6 +2,7 @@ import argparse
 import logging
 import math
 import os
+import sys
 import random
 import time
 from copy import deepcopy
@@ -40,9 +41,11 @@ from meghnad.repo.obj_det.yolov7.utils.torch_utils import ModelEMA, select_devic
 from meghnad.repo.obj_det.yolov7.utils.wandb_logging.wandb_utils import WandbLogger, check_wandb_resume
 from meghnad.core.cv.obj_det.src.pytorch.trn.trn_utils.general import get_sync_dir
 
+from utils.log import Log
 from utils.common_defs import method_header
 
 logger = logging.getLogger(__name__)
+log = Log()
 
 
 @method_header(
@@ -135,7 +138,9 @@ def train(opt: object) -> str:
     for k, v in model.named_parameters():
         v.requires_grad = True  # train all layers
         if any(x in k for x in freeze):
-            print('freezing %s' % k)
+            log.STATUS(sys._getframe().f_lineno,
+                       __file__, __name__,
+                       f'freezing %s' % k)
             v.requires_grad = False
 
     # Optimizer
@@ -597,7 +602,9 @@ def train(opt: object) -> str:
     A tuple of essential arguments for the training pipeline''')
 def _build_opt(opt: Dict) -> Tuple:
     opt.sync_dir = get_sync_dir()
-    print('sync_dir', opt.sync_dir)
+    log.STATUS(sys._getframe().f_lineno,
+               __file__, __name__,
+               f'sync_dir', opt.sync_dir)
     opt.data = os.path.join(opt.sync_dir, opt.data)
 
     if opt.hyp and isinstance(opt.hyp, str):

@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 from typing import List, Tuple, Dict, Optional
 
@@ -6,7 +7,10 @@ import numpy as np
 import tensorflow as tf
 import tqdm
 
+from utils.log import Log
 from utils.common_defs import method_header
+
+log = Log()
 
 
 def _int64_feature(value: int) -> tf.train.Feature:
@@ -135,7 +139,9 @@ def get_tfrecord_dataset(
 
             xmin, ymin, w, h = ann['bbox']
             if w <= 0 or h <= 0:
-                print(images_dict[image_id]["file_name"], ann)
+                log.VERBOSE(sys._getframe().f_lineno,
+                            __file__, __name__,
+                            images_dict[image_id]["file_name"], ann)
                 continue
 
             xmax = xmin + w

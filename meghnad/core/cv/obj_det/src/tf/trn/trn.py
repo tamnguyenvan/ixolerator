@@ -19,9 +19,7 @@ from meghnad.core.cv.obj_det.src.tf.trn.select_model import TFObjDetSelectModel
 from meghnad.core.cv.obj_det.src.tf.trn.eval import TFObjDetEval
 from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_optimizer, get_sync_dir
 
-
 __all__ = ['TFObjDetTrn']
-
 
 log = Log()
 
@@ -60,7 +58,6 @@ def _train_step(
         criterion: Union[tf.keras.losses.Loss, Callable],
         optimizer: str,
         weight_decay: float = 1e-5) -> Tuple[float]:
-
     with tf.GradientTape() as tape:
         confs, locs = model(imgs)
 
@@ -94,7 +91,6 @@ def _train_step(
         A list of string represents corresponding model configs
     """)
 def load_config_from_settings(settings: List[str]) -> Tuple[List, List]:
-
     settings = [f'{setting}_models' for setting in settings]
     cfg_obj = ObjDetConfig()
     data_cfg = cfg_obj.get_data_cfg()
@@ -117,7 +113,6 @@ class TFObjDetTrn:
     def __init__(self, settings: List[str]) -> None:
         self.settings = settings
         self.model_cfgs, self.data_cfgs = load_config_from_settings(settings)
-        print(self.model_cfgs)
         self.model_selection = TFObjDetSelectModel(self.model_cfgs)
         self.data_loaders = []
         self.best_model_path = None
@@ -146,12 +141,12 @@ class TFObjDetTrn:
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
     def trn(self,
-              epochs: int = 10,
-              checkpoint_dir: str = 'checkpoints',
-              logdir: str = 'training_logs',
-              resume_path: str = None,
-              print_every: int = 10,
-              **hyp) -> Tuple:
+            epochs: int = 10,
+            checkpoint_dir: str = 'checkpoints',
+            logdir: str = 'training_logs',
+            resume_path: str = None,
+            print_every: int = 10,
+            **hyp) -> Tuple:
         try:
             epochs = int(epochs)
             if epochs <= 0:
@@ -188,7 +183,9 @@ class TFObjDetTrn:
                 model=model, optimizer=optimizer, start_epoch=tf.Variable(0))
             if resume_path:
                 ckpt.read(resume_path)
-                print(f'Resume training from {resume_path}')
+                log.STATUS(sys._getframe().f_lineno,
+                           __file__, __name__,
+                           f'Resuming training from {resume_path}')
             else:
                 if checkpoint_dir and os.path.isdir(checkpoint_dir):
                     ckpt_filenames = os.listdir(checkpoint_dir)
@@ -198,7 +195,9 @@ class TFObjDetTrn:
                             ckpt_path = os.path.join(
                                 checkpoint_dir, prefix)
                             ckpt.read(ckpt_path)
-                            print(f'Resume training from {ckpt_path}')
+                            log.STATUS(sys._getframe().f_lineno,
+                                       __file__, __name__,
+                                       f'Resuming training from {ckpt_path}')
                             break
 
             # Setup summary writers
@@ -217,9 +216,13 @@ class TFObjDetTrn:
             total_steps = epochs * steps_per_epoch
             global_step = 0
 
-            # TODO: replace print by Log?
-            print('Steps per epoch', steps_per_epoch)
-            print('Total steps', total_steps)
+            log.VERBOSE(sys._getframe().f_lineno,
+                        __file__, __name__,
+                        'Steps per epoch', steps_per_epoch)
+
+            log.VERBOSE(sys._getframe().f_lineno,
+                        __file__, __name__,
+                        'Total steps', total_steps)
 
             # Start training
             start_epoch = ckpt.start_epoch.numpy()
@@ -244,15 +247,19 @@ class TFObjDetTrn:
                                     loc_loss.numpy()) / (i + 1)
                     avg_l2_loss = (avg_l2_loss * i + l2_loss.numpy()) / (i + 1)
                     if (i + 1) % print_every == 0:
-                        print('Epoch: {} Batch {} Time: {:.2}s | Loss: {:.4f} Conf: {:.4f} Loc: {:.4f} L2 Loss {:.4f}'.format(
-                            epoch + 1, i + 1, time.time() - start, avg_loss, avg_conf_loss, avg_loc_loss, avg_l2_loss))
+                        log.VERBOSE(sys._getframe().f_lineno,
+                                    __file__, __name__,
+                                    'Epoch: {} Batch {} Time: {:.2}s | Loss: {:.4f} Conf: {:.4f} Loc: {:.4f} L2 Loss '
+                                    '{:.4f}'.format(
+                                        epoch + 1, i + 1, time.time() - start, avg_loss, avg_conf_loss, avg_loc_loss,
+                                        avg_l2_loss))
 
                     # Learning rate scheduler
                     global_step = epoch * steps_per_epoch + i + 1
                     if global_step <= warmup_steps:
                         slope = (base_lr - warmup_learning_rate) / warmup_steps
                         new_lr = warmup_learning_rate + slope * \
-                            tf.cast(global_step, tf.float32)
+                                 tf.cast(global_step, tf.float32)
                         optimizer.learning_rate.assign(new_lr)
                     else:
                         new_lr = 0.5 * base_lr * (1 + tf.cos(
@@ -260,11 +267,16 @@ class TFObjDetTrn:
                             (tf.cast(i + 1, tf.float32) - warmup_steps
                              ) / float(total_steps - warmup_steps)))
                         optimizer.learning_rate.assign(new_lr)
-                print('Current learning rate:',
-                      optimizer.learning_rate.numpy())
+
+                log.VERBOSE(sys._getframe().f_lineno,
+                            __file__, __name__,
+                            f'Current learning rate:', optimizer.learning_rate.numpy())
 
                 # Start evaluation at the end of epoch
-                print('Evaluating...')
+                log.STATUS(sys._getframe().f_lineno,
+                           __file__, __name__,
+                           f'Evaluating...')
+
                 map, map50 = evaluator.eval(data_loader)
 
                 with train_summary_writer.as_default():
@@ -279,8 +291,10 @@ class TFObjDetTrn:
                 ckpt.start_epoch.assign_add(1)
                 save_path = ckpt.write(os.path.join(
                     checkpoint_dir, f'{model_name}_last.ckpt'))
-                print("Saved checkpoint for epoch {}: {}".format(
-                    int(ckpt.start_epoch), save_path))
+                log.STATUS(sys._getframe().f_lineno,
+                           __file__, __name__,
+                           "Saved checkpoint for epoch {}: {}".format(
+                               int(ckpt.start_epoch), save_path))
 
                 # Save the best
                 if map > best_map_over_all_models:
@@ -290,13 +304,17 @@ class TFObjDetTrn:
                         checkpoint_dir, f'best_saved_model', model_name)
 
                     tf.saved_model.save(model, self.best_model_path)
-                    print(f'Saved the best model as {self.best_model_path}')
+                    log.STATUS(sys._getframe().f_lineno,
+                               __file__, __name__,
+                               f'Saved the best model as {self.best_model_path}')
 
                     # save the corresponding default bounding boxes for inference
                     metadata_path = os.path.join(checkpoint_dir,
                                                  f'best_saved_model', model_name, 'metadata.npz')
                     np.savez(metadata_path, default_boxes=data_loader.default_boxes,
                              input_shape=data_loader.input_shape)
-                    print(f'Saved model metadata as {metadata_path}')
+                    log.STATUS(sys._getframe().f_lineno,
+                               __file__, __name__,
+                               f'Saved model metadata as {metadata_path}')
 
             return ret_values.IXO_RET_SUCCESS, self.best_model_path
