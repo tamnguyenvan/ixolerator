@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class Metric:
-    map50: float = 0
-    map: float = 0
-    recall: float = 0
-    precision: float = 0
-    f1: float = 0
+    map50: float = -1
+    map: float = -1
+    recall: float = -1
+    precision: float = -1
+    f1: float = -1

@@ -76,32 +76,44 @@ class Trainer:
         description='''
                 Function to set training configurations and start training.''',
         arguments='''
+                batch_size: batch size.
                 epochs: set epochs for the training by default it is 10
-                checkpoint_dir: directory from where the checkpoints should be loaded
-                logdir: directory where the logs should be saved
-                resume_path: The path/checkpoint from where the training should be resumed
-                print_every: an argument to specify when the function should print or after how many epochs
+                output_dir: directory from where the checkpoints should be loaded
                 ''')
     def trn(self,
             batch_size: int = 32,
-            epochs: int = 5) -> Tuple:
-        # success, pt_best_metric, pt_best_path = self.pt_trainer.trn(
-        #     batch_size=batch_size,
-        #     epochs=epochs
-        # )
+            epochs: int = 5,
+            output_dir: str = 'outputs',
+            **kwargs) -> Tuple:
+
+        os.makedirs(output_dir, exist_ok=True)
+        device = kwargs.get('device', 'cuda')
+
+        pt_output_dir = os.path.join(output_dir, 'pt')
+        success, pt_best_metric, pt_best_path = self.pt_trainer.trn(
+            batch_size=batch_size,
+            epochs=epochs,
+            device=device,
+            output_dir=pt_output_dir,
+            hyp=kwargs.get('hyp', dict())
+        )
+
+        tf_output_dir = os.path.join(output_dir, 'tf')
         success, tf_best_metric, tf_best_path = self.tf_trainer.trn(
             batch_size=batch_size,
-            epochs=epochs
+            epochs=epochs,
+            hyp=kwargs.get('hyp', dict()),
+            output_dir=tf_output_dir
         )
 
         # compare
         best_metric = None
-        # if pt_best_metric.map > tf_best_metric.map:
-        #     best_metric = pt_best_metric
-        #     best_model_path = pt_best_path
-        # else:
-        best_metric = tf_best_metric
-        best_model_path = tf_best_path
+        if pt_best_metric.map > tf_best_metric.map:
+            best_metric = pt_best_metric
+            best_model_path = pt_best_path
+        else:
+            best_metric = tf_best_metric
+            best_model_path = tf_best_path
 
         result = TrainingResult(
             best_metric=best_metric,

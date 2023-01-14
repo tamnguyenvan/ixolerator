@@ -109,6 +109,14 @@ class TFObjDetPred:
                     shapes.append(shape)
                 inputs = np.array(inputs)
                 shapes = np.array(shapes)
+            elif os.path.isfile(input):
+                image = cv2.imread(image_path)
+                image = image[:, :, ::-1]
+                image, shape = self._preprocess(image)
+                inputs = [image]
+                shapes = [shape]
+            else:
+                raise ValueError(f'Not found input(s): {input}')
         else:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Not supoorted input type")

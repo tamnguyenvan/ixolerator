@@ -87,7 +87,7 @@ class PyTorchObjDetPred:
         project = 'runs/test'
         sync_dir = Path(get_sync_dir())
         # save_dir = sync_dir / project / opt.name
-        save_dir = sync_dir / project  # TODO
+        save_dir = sync_dir / self.output_dir  # TODO
         save_dir.mkdir(parents=True, exist_ok=True)
 
         # Get names and colors

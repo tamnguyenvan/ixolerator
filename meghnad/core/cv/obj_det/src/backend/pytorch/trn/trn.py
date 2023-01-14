@@ -69,7 +69,9 @@ class PyTorchObjDetTrn:
             imgsz: int = 640,
             device: str = '',
             workers: int = 8,
-            hyp: Dict = None) -> Tuple:
+            output_dir: str = 'runs',
+            hyp: Dict = None,
+            **kwargs) -> Tuple:
         best_fitness = 0.0
         best_path = None
         for model_cfg in self.model_cfgs:
@@ -82,6 +84,7 @@ class PyTorchObjDetTrn:
                 imgsz=imgsz,
                 device=device,
                 workers=workers,
+                output_dir=output_dir,
                 hyp=hyp
             )
 

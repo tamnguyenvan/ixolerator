@@ -259,11 +259,12 @@ class TFObjDetDataLoader:
             data_file, dataset_split, tfrecord_file
         )
 
+        # For validation
         if dataset_split in ('val', 'test'):
             anns = get_coco_anns(data_file, dataset_split)
-            # tmp_file = tempfile.NamedTemporaryFile(
-            #     prefix=config_name, suffix='.json').name
-            tmp_file = f'{config_name}_{dataset_split}.json'
+            tmp_file = tempfile.NamedTemporaryFile(
+                prefix=config_name, suffix='.json').name
+            # tmp_file = f'{config_name}_{dataset_split}.json'
             with open(tmp_file, 'wt') as f:
                 json.dump(anns, f)
 

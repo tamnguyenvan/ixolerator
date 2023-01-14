@@ -14,10 +14,10 @@ class Predictor:
     def _load(self, path: str):
         if path is None:
             raise Exception(f'Unable to load model from {path}')
-        if os.path.isdir(path):
+        if os.path.isfile(path):
             # pytorch weights
             return PyTorchObjDetPred(path)
-        elif os.path.isfile(path):
+        elif os.path.isdir(path):
             # tensorflow saved model
             return TFObjDetPred(path)
         else:

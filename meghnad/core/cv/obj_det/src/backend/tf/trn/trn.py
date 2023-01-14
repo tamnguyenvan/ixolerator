@@ -107,18 +107,16 @@ class TFObjDetTrn:
                 Function to set training configurations and start training.''',
         arguments='''
                 epochs: set epochs for the training by default it is 10
-                ckpt_path: directory from where the checkpoints should be loaded
-                logdir: directory where the logs should be saved
+                output_dir: directory from where the checkpoints should be loaded
                 resume_path: The path/checkpoint from where the training should be resumed
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
     def trn(self,
             epochs: int = 10,
-            ckpt_path: str = 'runs',
-            logdir: str = 'training_logs',
+            output_dir: str = 'runs',
             resume_path: str = None,
             print_every: int = 10,
-            **hyp) -> Tuple:
+            hyp: Dict = dict()) -> Tuple:
         try:
             epochs = int(epochs)
             if epochs <= 0:
@@ -132,11 +130,10 @@ class TFObjDetTrn:
             return ret_values.IXO_RET_INVALID_INPUTS
 
         sync_dir = get_sync_dir()
-        ckpt_path = os.path.join(sync_dir, ckpt_path)
-        logdir = os.path.join(sync_dir, logdir)
+        output_dir = os.path.join(sync_dir, output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
         best_metric = Metric()
-        best_map_over_all_models = -1.0
         for i, model in enumerate(self.model_selection.models):
             data_loader = self.data_loaders[i]
             model_cfg = self.model_cfgs[i]
@@ -149,7 +146,7 @@ class TFObjDetTrn:
             evaluator = TFObjDetEval(model)
 
             model_name = model_cfg['arch']
-            log_dir = os.path.join(logdir, model_name)
+            model_savedir = os.path.join(output_dir, model_name)
 
             # Found a checkpoint
             ckpt = tf.train.Checkpoint(
@@ -160,24 +157,30 @@ class TFObjDetTrn:
                            __file__, __name__,
                            f'Resuming training from {resume_path}')
             else:
-                if ckpt_path and os.path.isdir(ckpt_path):
-                    ckpt_filenames = os.listdir(ckpt_path)
+                if model_savedir and os.path.isdir(model_savedir):
+                    ckpt_filenames = os.listdir(model_savedir)
                     prefix = f'{model_name}_last.ckpt'
                     for filename in ckpt_filenames:
                         if filename.startswith(prefix):
-                            ckpt_path = os.path.join(
-                                ckpt_path, prefix)
-                            ckpt.read(ckpt_path)
+                            model_savedir = os.path.join(
+                                model_savedir, prefix)
+                            ckpt.read(model_savedir)
                             log.STATUS(sys._getframe().f_lineno,
                                        __file__, __name__,
-                                       f'Resuming training from {ckpt_path}')
+                                       f'Resuming training from {model_savedir}')
                             break
 
             # Setup summary writers
-            train_log_dir = os.path.join(log_dir, 'train')
-            val_log_dir = os.path.join(log_dir, 'val')
-            train_summary_writer = tf.summary.create_file_writer(train_log_dir)
-            val_summary_writer = tf.summary.create_file_writer(val_log_dir)
+            if os.path.isfile(model_savedir):
+                logdir = os.path.join(os.path.dirname(model_savedir), 'logs')
+            else:
+                logdir = os.path.join(model_savedir, 'logs')
+            train_logdir = os.path.join(logdir, 'logs/train')
+            val_logdir = os.path.join(logdir, 'logs/val')
+            os.makedirs(train_logdir, exist_ok=True)
+            os.makedirs(val_logdir, exist_ok=True)
+            train_summary_writer = tf.summary.create_file_writer(train_logdir)
+            val_summary_writer = tf.summary.create_file_writer(val_logdir)
 
             # Setup learning rate scheduler
             base_lr = float(optimizer.learning_rate.numpy())
@@ -264,19 +267,18 @@ class TFObjDetTrn:
                 # Checkpoint
                 ckpt.start_epoch.assign_add(1)
                 save_path = ckpt.write(os.path.join(
-                    ckpt_path, f'{model_name}_last.ckpt'))
+                    model_savedir, f'{model_name}_last.ckpt'))
                 log.STATUS(sys._getframe().f_lineno,
                            __file__, __name__,
                            "Saved checkpoint for epoch {}: {}".format(
                                int(ckpt.start_epoch), save_path))
 
                 # Save the best
-                if map > best_map_over_all_models:
-                    best_map_over_all_models = map
+                if map > best_metric.map:
                     best_metric.map = map
 
                     self.best_model_path = os.path.join(
-                        ckpt_path, f'best_saved_model', model_name)
+                        output_dir, f'best_saved_model')
 
                     tf.saved_model.save(model, self.best_model_path)
                     log.STATUS(sys._getframe().f_lineno,
@@ -284,10 +286,10 @@ class TFObjDetTrn:
                                f'Saved the best model as {self.best_model_path}')
 
                     # save the corresponding default bounding boxes for inference
-                    metadata_path = os.path.join(ckpt_path,
-                                                 f'best_saved_model', model_name, 'metadata.npz')
+                    metadata_path = os.path.join(output_dir,
+                                                 f'best_saved_model', 'metadata.npz')
                     np.savez(metadata_path, default_boxes=data_loader.default_boxes,
-                             input_shape=data_loader.input_shape)
+                             input_shape=data_loader.input_shape, model_name=model_name)
                     log.STATUS(sys._getframe().f_lineno,
                                __file__, __name__,
                                f'Saved model metadata as {metadata_path}')

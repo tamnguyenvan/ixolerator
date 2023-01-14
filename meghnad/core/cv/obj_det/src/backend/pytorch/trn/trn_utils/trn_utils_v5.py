@@ -530,7 +530,8 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
         # opt.save_dir = str(increment_path(
         #     Path(opt.project) / opt.name, exist_ok=opt.exist_ok))
         # opt.save_dir = opt.project / opt.name
-        opt.save_dir = os.path.join(opt.sync_dir, opt.project, opt.name)
+        # opt.save_dir = os.path.join(opt.sync_dir, opt.project, opt.name)
+        opt.save_dir = Path(opt.output_dir) / opt.name
         if not os.path.isdir(opt.save_dir):
             os.makedirs(opt.save_dir, exist_ok=True)
 

@@ -609,7 +609,6 @@ def _build_opt(opt: Dict) -> Tuple:
     if opt.hyp and isinstance(opt.hyp, str):
         opt.hyp = get_meghnad_repo_dir() / 'yolov7' / opt.hyp
 
-    print('~~~~~~~~~~~~~~~', opt)
     # Set DDP variables
     opt.world_size = int(os.environ['WORLD_SIZE']
                          ) if 'WORLD_SIZE' in os.environ else 1
@@ -642,7 +641,8 @@ def _build_opt(opt: Dict) -> Tuple:
         opt.name = 'evolve' if opt.evolve else opt.name
         # opt.save_dir = increment_path(Path(
         #     opt.project) / opt.name, exist_ok=opt.exist_ok | opt.evolve)  # increment run
-        opt.save_dir = Path(opt.project) / opt.name
+        # opt.save_dir = Path(opt.project) / opt.name
+        opt.save_dir = Path(opt.output_dir) / opt.name
         if not os.path.isdir(opt.save_dir):
             os.makedirs(opt.save_dir, exist_ok=True)
 
