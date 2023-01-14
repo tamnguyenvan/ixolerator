@@ -495,7 +495,7 @@ def check_font(font=FONT, progress=False):
         torch.hub.download_url_to_file(url, str(file), progress=progress)
 
 
-def check_dataset(data, autodownload=True):
+def check_dataset(data, sync_dir='.', autodownload=True):
     # Download, check and/or unzip dataset if not found locally
 
     # Download (optional)
@@ -518,24 +518,28 @@ def check_dataset(data, autodownload=True):
     data['nc'] = len(data['names'])
 
     # Resolve paths
-    path = Path(extract_dir or data.get('path') or '')  # optional 'path' default to '.'
+    # path = Path(extract_dir or data.get('path') or '')  # optional 'path' default to '.'
+    path = Path(sync_dir)
     if not path.is_absolute():
         path = (ROOT / path).resolve()
         data['path'] = path  # download scripts
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
-                x = (path / data[k]).resolve()
+                print(path, data[k])
+                print(path / data[k])
+                # x = (path / data[k]).resolve()
+                x = path / data[k]
                 if not x.exists() and data[k].startswith('../'):
-                    x = (path / data[k][3:]).resolve()
+                    x = (path / data[k][3:])
                 data[k] = str(x)
             else:
-                data[k] = [str((path / x).resolve()) for x in data[k]]
+                data[k] = [str((path / x)) for x in data[k]]
 
     # Parse yaml
     train, val, test, s = (data.get(x) for x in ('train', 'val', 'test', 'download'))
     if val:
-        val = [Path(x).resolve() for x in (val if isinstance(val, list) else [val])]  # val path
+        val = [Path(x) for x in (val if isinstance(val, list) else [val])]  # val path
         if not all(x.exists() for x in val):
             LOGGER.info('\nDataset not found ⚠️, missing paths %s' % [str(x) for x in val if not x.exists()])
             if not s or not autodownload:

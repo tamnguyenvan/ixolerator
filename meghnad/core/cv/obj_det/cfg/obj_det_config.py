@@ -6,9 +6,17 @@
 # Author: Prudhvi Raju
 #######################################################################################################################
 from typing import List
+from dataclasses import dataclass
 from meghnad.cfg.config import MeghnadConfig
 
-__all__ = ['ObjDetConfig']
+__all__ = ['ObjDetConfig', 'BACKENDS']
+
+
+@dataclass
+class BACKENDS:
+    TENSORFLOW: str = 'tensorflow'
+    PYTORCH: str = 'pytorch'
+
 
 _obj_det_cfg = {
     'models':
@@ -23,16 +31,13 @@ _obj_det_cfg = {
         'YOLOv5',
         'YOLOv7'
     },
-    'data_cfg':
-    {
-        'path': '',
-        'train_test_val_split': (0.7, 0.2, 0.1),
-    },
     'model_cfg':
     {
         'MobileNetV2':
         {
+            'config_name': 'MobileNetV2',
             'arch': 'MobileNetV2',
+            'backend': 'tensorflow',
             'pretrained': None,
             'input_shape': (300, 300, 3),
             'num_classes': 10 + 1,  # num_classes + background
@@ -66,7 +71,9 @@ _obj_det_cfg = {
         },
         'EfficientNetB3':
         {
+            'config_name': 'EfficientNetB3',
             'arch': 'EfficientNetB3',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -82,7 +89,9 @@ _obj_det_cfg = {
             }
         },
         'EfficientNetB4': {
+            'config_name': 'EfficientNetB4',
             'arch': 'EfficientNetB4',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -98,7 +107,9 @@ _obj_det_cfg = {
             }
         },
         'EfficientNetB5': {
+            'config_name': 'EfficientNetB5',
             'arch': 'EfficientNetB5',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -114,7 +125,9 @@ _obj_det_cfg = {
             }
         },
         'EfficientNetV2S': {
+            'config_name': 'EfficientNetV2S',
             'arch': 'EfficientNetV2S',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -130,7 +143,9 @@ _obj_det_cfg = {
             }
         },
         'EfficientNetV2M': {
+            'config_name': 'EfficientNetV2M',
             'arch': 'EfficientNetV2M',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -146,7 +161,9 @@ _obj_det_cfg = {
             }
         },
         'EfficientNetV2L': {
+            'config_name': 'EfficientNetV2L',
             'arch': 'EfficientNetV2L',
+            'backend': 'tensorflow',
             'input_shape': (512, 512, 3),
             'aspect_ratios': [[2], [2, 3], [2, 3], [2], [2]],
             'num_anchors': [4, 6, 6, 4, 4],
@@ -162,7 +179,9 @@ _obj_det_cfg = {
             }
         },
         'YOLOv5': {
+            'config_name': 'YOLOv5',
             'arch': 'yolov5',
+            'backend': 'pytorch',
             'weights': 'yolov5s.pt',
             'imgsz': 640,
             'cfg': '',
@@ -193,7 +212,9 @@ _obj_det_cfg = {
             'seed': 0,
         },
         'YOLOv7Light': {
+            'config_name': 'YOLOv7Light',
             'arch': 'yolov7',
+            'backend': 'pytorch',
             'weights': 'yolov7.pt',
             'img_size': [640],
             'cfg': '',
@@ -224,7 +245,9 @@ _obj_det_cfg = {
             'v5_metric': False
         },
         'YOLOv7Large': {
+            'config_name': 'YOLOv7Large',
             'arch': 'yolov7',
+            'backend': 'pytorch',
             'weights': 'yolov7.pt',
             'img_size': [1280],
             'cfg': '',
@@ -258,7 +281,7 @@ _obj_det_cfg = {
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
-        'light_models': ['YOLOv5', 'YOLOv7Light'],
+        'light_models': ['YOLOv7Light', 'MobileNetV2'],
         'large_models': ['YOLOv7Large']
     }
 }

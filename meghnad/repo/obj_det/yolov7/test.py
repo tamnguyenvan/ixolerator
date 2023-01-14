@@ -19,6 +19,7 @@ from meghnad.repo.obj_det.yolov7.utils.torch_utils import select_device, time_sy
 
 
 def test(data,
+         sync_dir='.',
          weights=None,
          batch_size=32,
          imgsz=640,
@@ -78,7 +79,8 @@ def test(data,
         is_coco = data.endswith('coco.yaml')
         with open(data) as f:
             data = yaml.load(f, Loader=yaml.SafeLoader)
-    check_dataset(data)  # check
+
+    check_dataset(data, sync_dir)  # check
     nc = 1 if single_cls else int(data['nc'])  # number of classes
     iouv = torch.linspace(0.5, 0.95, 10).to(
         device)  # iou vector for mAP@0.5:0.95
