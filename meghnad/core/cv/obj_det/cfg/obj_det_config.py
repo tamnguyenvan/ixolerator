@@ -232,7 +232,7 @@ _obj_det_cfg = {
             'single_cls': False,
             'adam': False,
             'sync_bn': False,
-            'workers': 8,
+            'workers': 4,
             'project': 'runs/train',
             'name': 'yolov7_light',
             'exist_ok': False,
@@ -265,7 +265,7 @@ _obj_det_cfg = {
             'single_cls': False,
             'adam': False,
             'sync_bn': False,
-            'workers': 8,
+            'workers': 4,
             'project': 'runs/train',
             'name': 'yolov7_large',
             'exist_ok': False,
@@ -281,7 +281,7 @@ _obj_det_cfg = {
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
-        'light_models': ['YOLOv7Light', 'MobileNetV2'],
+        'light_models': ['YOLOv5', 'MobileNetV2'],
         'large_models': ['YOLOv7Large']
     }
 }

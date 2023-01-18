@@ -23,15 +23,12 @@ class S3MountLinux():
 
         cmd = 'echo ' + config['access_key_id'] + ':' + config['secret_access_key'] + ' > ' + config[
             'password_file_path']
-        print(cmd)
         os.system(cmd)
 
         cmd = 'chmod 600 ' + config['password_file_path']
-        print(cmd)
         os.system(cmd)
 
         cmd = 'mkdir ' + config['mount_folder_name']
-        print(cmd)
         os.system(cmd)
 
     @method_header(
@@ -40,11 +37,8 @@ class S3MountLinux():
     def create_mount(self):
         config = self.configs.get_s3_configs()
 
-        password_file_path = os.path.expanduser(config['password_file_path'])
-        cmd = 's3fs ' + config['bucket_name'] + ':/' + config['mount_folder_name'] + ' ' + \
-            config['mount_folder_name'] + \
-            ' -o passwd_file=' + password_file_path
-        print(cmd)
+        cmd = 's3fs ' + config['bucket_name'] + ' ~/' + config['mount_folder_name'] + ' -o passwd_file=' + config[
+            'password_file_path']
         os.system(cmd)
 
 

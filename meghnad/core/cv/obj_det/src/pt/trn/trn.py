@@ -1,18 +1,14 @@
-import os
 from typing import List, Tuple, Dict
-
 import numpy as np
 
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
-
-from meghnad.core.cv.obj_det.src.backend.pytorch.trn.trn_utils import get_train_pipeline, get_train_opt
-from meghnad.core.cv.obj_det.src.trn.metric import Metric
-from connectors.aws.s3.config import S3Config
+from meghnad.core.cv.obj_det.src.pt.trn.trn_utils import get_train_pipeline, get_train_opt
+from meghnad.core.cv.obj_det.src.metric import Metric
 
 
-__all__ = ['PyTorchObjDetTrn']
+__all__ = ['PTObjDetTrn']
 
 
 log = Log()
@@ -34,7 +30,7 @@ def fitness(x: np.ndarray) -> float:
 @class_header(
     description='''
         Class for object detection model training''')
-class PyTorchObjDetTrn:
+class PTObjDetTrn:
     def __init__(self, model_cfgs: List[Dict]) -> None:
         self.model_cfgs = model_cfgs
         self.data_path = None

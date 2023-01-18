@@ -9,10 +9,10 @@ import tensorflow as tf
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-from meghnad.core.cv.obj_det.src.backend.tf.data_loader.loader_utils import get_tfrecord_dataset, get_coco_anns
-from meghnad.core.cv.obj_det.src.backend.tf.model_loader.anchors import generate_default_boxes
-from meghnad.core.cv.obj_det.src.backend.tf.model_loader.utils import compute_target
-from meghnad.core.cv.obj_det.src.backend.tf.data_loader.transforms import build_transforms
+from meghnad.core.cv.obj_det.src.tf.data_loader.loader_utils import get_tfrecord_dataset, get_coco_anns
+from meghnad.core.cv.obj_det.src.tf.model_loader.anchors import generate_default_boxes
+from meghnad.core.cv.obj_det.src.tf.model_loader.utils import compute_target
+from meghnad.core.cv.obj_det.src.tf.data_loader.transforms import build_transforms
 
 __all__ = ['TFObjDetDataLoader']
 
@@ -241,14 +241,13 @@ class TFObjDetDataLoader:
             Helper function for creating connecting dataset path to data directory.
             ''',
         arguments='''
-            image_dir : string : directory where the images are present
-            annotation_file : string : path for the annotation file
-            dataset [optional]: string : which dataset to choose (train) is selected by default
+            data_file: path to YOLO data file.
+            dataset_split: string : which dataset to choose (train) is selected by default
             ''',
         returns='''
             returns dataset and number of samples in the form of tensor records''')
     def _read_data(self, data_file: str, dataset_split: str):
-        tfrecord_dir = os.path.dirname(data_file)
+        tfrecord_dir = '.'  # TODO:
         config_name = self.model_cfg['config_name']
         tfrecord_file = os.path.join(
             tfrecord_dir, f'{config_name}_{dataset_split}.tfrecord')

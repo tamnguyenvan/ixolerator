@@ -7,7 +7,7 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from meghnad.core.cv.obj_det.src.backend.tf.model_loader.utils import decode, compute_nms
+from meghnad.core.cv.obj_det.src.tf.model_loader.utils import decode, compute_nms
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header

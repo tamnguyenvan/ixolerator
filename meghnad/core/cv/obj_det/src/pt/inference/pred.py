@@ -19,7 +19,7 @@ from utils.log import Log
 from utils.common_defs import class_header, method_header
 
 
-__all__ = ['PyTorchObjDetPred']
+__all__ = ['PTObjDetPred']
 
 log = Log()
 
@@ -27,7 +27,7 @@ log = Log()
 @class_header(
     description='''
     Class for Object detection predictions''')
-class PyTorchObjDetPred:
+class PTObjDetPred:
     def __init__(self,
                  weights: str,
                  output_dir: Optional[str] = './results') -> None:
@@ -84,7 +84,7 @@ class PyTorchObjDetPred:
             ('rtsp://', 'rtmp://', 'http://', 'https://'))
 
         # Directories
-        project = 'runs/test'
+        #project = 'runs/test'
         sync_dir = Path(get_sync_dir())
         # save_dir = sync_dir / project / opt.name
         save_dir = sync_dir / self.output_dir  # TODO

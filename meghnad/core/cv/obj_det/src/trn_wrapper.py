@@ -1,14 +1,17 @@
 import os
+import sys
 from typing import Dict, List, Tuple
 from dataclasses import dataclass
 
 from utils import ret_values
+from utils.log import Log
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig, BACKENDS
-from meghnad.core.cv.obj_det.src.backend.tf.trn import TFObjDetTrn
-from meghnad.core.cv.obj_det.src.backend.pytorch.trn import PyTorchObjDetTrn
-from meghnad.core.cv.obj_det.src.trn.metric import Metric
+from meghnad.core.cv.obj_det.src.tf.trn import TFObjDetTrn
+from meghnad.core.cv.obj_det.src.pt.trn import PTObjDetTrn
+from meghnad.core.cv.obj_det.src.metric import Metric
 from utils.common_defs import class_header, method_header
 
+log = Log()
 
 @method_header(
     description="""Returns configs from given settings
@@ -35,13 +38,18 @@ def load_config_from_settings(settings: List[str]) -> List:
             model_cfgs.append(model_cfg)
     return model_cfgs
 
-
+@method_header(
+        description='''
+                Dataclass that contains only data
+                ''')
 @dataclass
 class TrainingResult:
     best_metric: Metric = None
     best_model_path: str = None
 
-
+@class_header(
+    description='''
+    Wrapper class for Object detection training''')
 class Trainer:
     def __init__(self, settings: List[str]) -> None:
         self.settings = settings
@@ -57,9 +65,12 @@ class Trainer:
             elif backend == BACKENDS.PYTORCH:
                 pt_model_cfgs.append(model_cfg)
             else:
-                raise ValueError(f'Unsupported backend: {backend}')
+                log.ERROR(sys._getframe().f_lineno,
+                          __file__, __name__, f'Unsupported backend: {backend}')
+                return ret_values.IXO_RET_NOT_SUPPORTED
+                #raise ValueError(f'Unsupported backend: {backend}')
         self.tf_trainer = TFObjDetTrn(tf_model_cfgs)
-        self.pt_trainer = PyTorchObjDetTrn(pt_model_cfgs)
+        self.pt_trainer = PTObjDetTrn(pt_model_cfgs)
 
     @method_header(
         description='''
@@ -69,8 +80,8 @@ class Trainer:
                 the directory in case data exists in multiple files in a directory structure)
                 ''')
     def config_connectors(self, data_path: str, augmentations: Dict = None) -> None:
-        self.tf_trainer.config_connectors(data_path, augmentations)
-        self.pt_trainer.config_connectors(data_path)
+        self.data_path = data_path
+        self.augmentations = augmentations
 
     @method_header(
         description='''
@@ -83,28 +94,34 @@ class Trainer:
     def trn(self,
             batch_size: int = 32,
             epochs: int = 5,
+            workers: int = 4,
             output_dir: str = 'outputs',
+            device: str = 'cuda',
             **kwargs) -> Tuple:
 
         os.makedirs(output_dir, exist_ok=True)
-        device = kwargs.get('device', 'cuda')
 
         pt_output_dir = os.path.join(output_dir, 'pt')
+        self.pt_trainer.config_connectors(self.data_path)
         success, pt_best_metric, pt_best_path = self.pt_trainer.trn(
             batch_size=batch_size,
             epochs=epochs,
+            workers=workers,
             device=device,
             output_dir=pt_output_dir,
             hyp=kwargs.get('hyp', dict())
         )
+        del self.pt_trainer
 
         tf_output_dir = os.path.join(output_dir, 'tf')
+        self.tf_trainer.config_connectors(self.data_path, self.augmentations)
         success, tf_best_metric, tf_best_path = self.tf_trainer.trn(
             batch_size=batch_size,
             epochs=epochs,
             hyp=kwargs.get('hyp', dict()),
             output_dir=tf_output_dir
         )
+        del self.tf_trainer
 
         # compare
         best_metric = None

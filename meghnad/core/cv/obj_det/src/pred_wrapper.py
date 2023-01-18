@@ -1,27 +1,50 @@
 import os
+import sys
 from typing import Optional, Tuple, Any
 
+from utils.log import Log
+from utils import ret_values
 from utils.common_defs import class_header, method_header
-from meghnad.core.cv.obj_det.src.backend.pytorch.inference.pred import PyTorchObjDetPred
-from meghnad.core.cv.obj_det.src.backend.tf.inference.pred import TFObjDetPred
+from meghnad.core.cv.obj_det.src.pt.inference.pred import PTObjDetPred
+from meghnad.core.cv.obj_det.src.tf.inference.pred import TFObjDetPred
 
+log = Log()
 
+@class_header(
+    description='''
+    Wrapper class for Object detection predictions''')
 class Predictor:
     def __init__(self, ckpt_path: str):
         self.ckpt_path = ckpt_path
         self.predictor = self._load(ckpt_path)
 
+    @method_header(
+        description="""Method that applies Pytorch or Tensorflow pred classes based on the backend selected
+            """,
+        arguments="""
+                path: path to weights file
+                """,
+        returns="""PT or TF predictor class""")
     def _load(self, path: str):
         if path is None:
-            raise Exception(f'Unable to load model from {path}')
+            log.ERROR(sys._getframe().f_lineno,
+                        __file__, __name__,
+                        f'Unable to load model from {path}')
+            return ret_values.IXO_RET_INVALID_INPUTS
+            #raise Exception(f'Unable to load model from {path}')
         if os.path.isfile(path):
             # pytorch weights
-            return PyTorchObjDetPred(path)
+            return PTObjDetPred(path)
         elif os.path.isdir(path):
             # tensorflow saved model
             return TFObjDetPred(path)
         else:
-            raise Exception(f'Unable to load model from {path}')
+            log.ERROR(sys._getframe().f_lineno,
+                      __file__, __name__,
+                      f'Unable to load model from {path}')
+            return ret_values.IXO_RET_INVALID_INPUTS
+
+            #raise Exception(f'Unable to load model from {path}')
 
     @method_header(
         description="""Curates directories, runs inference, performs post processing and processes detections

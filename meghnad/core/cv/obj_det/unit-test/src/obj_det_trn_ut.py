@@ -1,21 +1,19 @@
-import os
-import sys
+import sys, os
 import unittest
-# from meghnad.core.cv.obj_det.src.tf.trn import TFObjDetTrn
-# from meghnad.core.cv.obj_det.src.tf.inference import TFObjDetPred
-# from meghnad.core.cv.obj_det.src.pytorch.trn.trn import PyTorchObjDetTrn
-# from meghnad.core.cv.obj_det.src.pytorch.inference.pred import PyTorchObjDetPred
-import torch
-torch.cuda.set_device(0)
-from meghnad.core.cv.obj_det.src.trn import Trainer
-from meghnad.core.cv.obj_det.src.inference.pred import Predictor
+
+from meghnad.core.cv.obj_det.src.trn_wrapper import Trainer
+from meghnad.core.cv.obj_det.src.pred_wrapper import Predictor
 from utils.log import Log
 
+import torch
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+num_of_gpus = torch.cuda.device_count()
+torch.cuda.set_device(0)
 
 import tensorflow as tf
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
-    tf.config.set_visible_devices(gpus, 'GPU')
+   tf.config.set_visible_devices(gpus, 'GPU')
 
 log = Log()
 
@@ -23,7 +21,7 @@ log = Log()
 def test_case1():
     settings = ['light']
     trainer = Trainer(settings)
-    data_path = 'coco128.yaml'
+    data_path = 'data/coco128.yml'
     augmentations = {
         'train':
         {
@@ -45,15 +43,25 @@ def test_case1():
 
     trainer.config_connectors(data_path, augmentations=augmentations)
     _, result = trainer.trn(
-        batch_size=4,
-        epochs=10,
+        batch_size=2,
+        epochs=5,
+        workers=4,
+        device='0',
         hyp=hyp
     )
+
+    # log.VERBOSE(sys._getframe().f_lineno,
+    #            __file__, __name__,
+    #            f'Best mAP: {result.best_metric.map}')
+    #
+    # log.VERBOSE(sys._getframe().f_lineno,
+    #            __file__, __name__,
+    #            f'Best path: {result.best_model_path}')
 
     print('Best mAP:', result.best_metric.map)
     print('Best path:', result.best_model_path)
     predictor = Predictor(result.best_model_path)
-    val_path = './coco128/images/train2017'
+    val_path = 'D:/ixo_data/data/coco128/images/train2017'
     predictor.pred(val_path)
 
 

@@ -11,6 +11,7 @@ import tqdm
 
 from utils.log import Log
 from utils.common_defs import method_header
+from meghnad.core.cv.obj_det.src.utils.general import get_sync_dir
 
 log = Log()
 
@@ -233,7 +234,9 @@ def get_tfrecord_dataset(data_file: str, dataset_split: str, tfrecord_file: str)
 
     if dataset_split == 'test' and data_dict.get('test') is None:
         dataset_split = 'val'
+    sync_dir = get_sync_dir()
     path = data_dict[dataset_split]
+    path = os.path.join(sync_dir, path)
     names = data_dict['names']
     if isinstance(names, dict):
         names = list(names.values())
@@ -265,6 +268,9 @@ def get_coco_anns(data_file: str, dataset_split: str):
     categories = [{'supercategory': name, 'id': i + 1, 'name': name}
                   for i, name in enumerate(names)]
     label_dir = image_dir.replace('images', 'labels')
+    sync_dir = get_sync_dir()
+    image_dir = os.path.join(sync_dir, image_dir)
+    label_dir = os.path.join(sync_dir, label_dir)
     filenames = os.listdir(image_dir)
     data = dict(
         images=[],

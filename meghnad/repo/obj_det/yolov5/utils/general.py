@@ -526,8 +526,6 @@ def check_dataset(data, sync_dir='.', autodownload=True):
     for k in 'train', 'val', 'test':
         if data.get(k):  # prepend path
             if isinstance(data[k], str):
-                print(path, data[k])
-                print(path / data[k])
                 # x = (path / data[k]).resolve()
                 x = path / data[k]
                 if not x.exists() and data[k].startswith('../'):

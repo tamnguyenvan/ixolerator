@@ -14,10 +14,10 @@ from meghnad.core.cv.obj_det.src.utils.general import get_meghnad_repo_dir
         A training function.''')
 def get_train_pipeline(arch: str) -> Callable:
     if arch == 'yolov5':
-        from meghnad.core.cv.obj_det.src.backend.pytorch.trn.trn_utils.trn_utils_v5 import train as trn_yolov5
+        from meghnad.core.cv.obj_det.src.pt.trn.trn_utils.trn_utils_v5 import train as trn_yolov5
         return trn_yolov5
     elif arch == 'yolov7':
-        from meghnad.core.cv.obj_det.src.backend.pytorch.trn.trn_utils.trn_utils_v7 import train as trn_yolov7
+        from meghnad.core.cv.obj_det.src.pt.trn.trn_utils.trn_utils_v7 import train as trn_yolov7
         return trn_yolov7
 
 

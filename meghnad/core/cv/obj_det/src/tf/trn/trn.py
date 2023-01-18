@@ -7,18 +7,18 @@ from typing import List, Tuple, Union, Callable, Dict
 import numpy as np
 import tensorflow as tf
 
-from meghnad.core.cv.obj_det.src.backend.tf.data_loader import TFObjDetDataLoader
-from meghnad.core.cv.obj_det.src.backend.tf.model_loader.losses import Loss
+from meghnad.core.cv.obj_det.src.tf.data_loader import TFObjDetDataLoader
+from meghnad.core.cv.obj_det.src.tf.model_loader.losses import Loss
 from meghnad.core.cv.obj_det.cfg import ObjDetConfig
-from meghnad.core.cv.obj_det.src.trn.metric import Metric
+from meghnad.core.cv.obj_det.src.metric import Metric
 
 from utils import ret_values
 from utils.log import Log
 from utils.common_defs import class_header, method_header
 
-from meghnad.core.cv.obj_det.src.backend.tf.trn.select_model import TFObjDetSelectModel
-from meghnad.core.cv.obj_det.src.backend.tf.trn.eval import TFObjDetEval
-from meghnad.core.cv.obj_det.src.backend.tf.trn.trn_utils import get_optimizer
+from meghnad.core.cv.obj_det.src.tf.trn.select_model import TFObjDetSelectModel
+from meghnad.core.cv.obj_det.src.tf.trn.eval import TFObjDetEval
+from meghnad.core.cv.obj_det.src.tf.trn.trn_utils import get_optimizer
 from meghnad.core.cv.obj_det.src.utils.general import get_sync_dir
 
 __all__ = ['TFObjDetTrn']
@@ -85,7 +85,7 @@ def _train_step(
 class TFObjDetTrn:
     def __init__(self, model_cfgs: List[Dict]) -> None:
         self.model_cfgs = model_cfgs
-        self.model_selection = TFObjDetSelectModel(model_cfgs)
+        self.model_selection = None
         self.data_loaders = []
         self.best_model_path = None
 
@@ -112,6 +112,7 @@ class TFObjDetTrn:
                 print_every: an argument to specify when the function should print or after how many epochs
                 ''')
     def trn(self,
+            batch_size: int = 4,  # TODO:
             epochs: int = 10,
             output_dir: str = 'runs',
             resume_path: str = None,
@@ -128,6 +129,10 @@ class TFObjDetTrn:
             log.ERROR(sys._getframe().f_lineno,
                       __file__, __name__, "Epochs value must be a positive integer")
             return ret_values.IXO_RET_INVALID_INPUTS
+
+        # Layzy loading
+        if self.model_selection is None:
+            self.model_selection = TFObjDetSelectModel(self.model_cfgs)
 
         sync_dir = get_sync_dir()
         output_dir = os.path.join(sync_dir, output_dir)
@@ -275,6 +280,7 @@ class TFObjDetTrn:
 
                 # Save the best
                 if map > best_metric.map:
+                    print(f'Best mAP of {model_name}: {map:.4f}')
                     best_metric.map = map
 
                     self.best_model_path = os.path.join(

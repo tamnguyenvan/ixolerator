@@ -1,23 +1,10 @@
-from typing import List
-
 import tensorflow as tf
-from tensorflow.keras import Model
-from meghnad.core.cv.obj_det.src.backend.tf.model_loader.ssd.backbones import get_backbone, create_extra_layers, create_heads
-from utils.common_defs import method_header
+from tensorflow.keras import Model, Sequential
+from tensorflow.keras.layers import Conv2D, UpSampling2D
+from meghnad.core.cv.obj_det.src.tf.model_loader.fpn.backbones import get_backbone, create_extra_layers, create_heads
 
 
-@method_header(
-    description='''
-        Config ssd model with input and locs''',
-    arguments='''
-        backbone: model: a pre-trained image classification network as a feature extractor
-        input_shape: nparray: shape of the input image
-        num_classes: int: number of classes for classification
-        num_anchors: int: number of bounding box (points for the bbox)
-        ''',
-    returns='''
-        model that accepts input of image_size and heads''')
-def ssd(backbone: str, input_shape, num_classes: int, num_anchors: List) -> Model:
+def fpn(backbone, input_shape, num_classes, num_anchors):
     image_size = input_shape[:2]
 
     base_model, feature_names, base_output_name = get_backbone(
@@ -41,7 +28,17 @@ def ssd(backbone: str, input_shape, num_classes: int, num_anchors: List) -> Mode
     # Build heads
     confs = []
     locs = []
-    for i, feature in enumerate(features):
+    # for i, feature in enumerate(features):
+    for i in range(len(features) - 1, 0, -1):
+        feature = features[i]
+        feature_pyrimad_network = Sequential([
+            Conv2D(256, 3, strides=1),
+            UpSampling2D((2, 2))
+        ])
+        if i < len(features) - 1:
+            # Upsampling
+            feature = feature + feature_pyrimad_network(features[i + 1])
+
         conf = conf_head_layers[i](feature)
         loc = loc_head_layers[i](feature)
 

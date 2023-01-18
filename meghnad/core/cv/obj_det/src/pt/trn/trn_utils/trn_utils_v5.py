@@ -17,6 +17,8 @@ import yaml
 from torch.optim import lr_scheduler
 from tqdm import tqdm
 
+from meghnad.core.cv.obj_det.src.utils.general import get_meghnad_repo_dir, get_sync_dir
+
 ROOT = get_meghnad_repo_dir() / 'yolov5'
 ROOT = Path(os.path.relpath(ROOT, Path.cwd()))  # relative
 
@@ -40,7 +42,6 @@ from meghnad.repo.obj_det.yolov5.utils.metrics import fitness
 from meghnad.repo.obj_det.yolov5.utils.torch_utils import (EarlyStopping, ModelEMA, de_parallel, select_device, smart_DDP, smart_optimizer,
                                                            smart_resume, torch_distributed_zero_first)
 
-from meghnad.core.cv.obj_det.src.utils.general import get_meghnad_repo_dir, get_sync_dir
 from utils.log import Log
 from utils.common_defs import method_header
 
@@ -136,6 +137,7 @@ def train(opt: object) -> str:  # hyp is path/to/hyp.yaml or hyp dictionary
         model.load_state_dict(csd, strict=False)  # load
         LOGGER.info(
             f'Transferred {len(csd)}/{len(model.state_dict())} items from {weights}')  # report
+
     else:
         model = Model(cfg, ch=3, nc=nc, anchors=hyp.get(
             'anchors')).to(device)  # create
@@ -484,7 +486,7 @@ def _build_opt(opt: object, callbacks=Callbacks()) -> Tuple:
     opt.sync_dir = get_sync_dir()
     log.STATUS(sys._getframe().f_lineno,
                __file__, __name__,
-               f'sync_dir', opt.sync_dir)
+               f'sync_dir: {opt.sync_dir}')
     opt.data = os.path.join(opt.sync_dir, opt.data)
 
     # Checks
