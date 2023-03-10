@@ -29,7 +29,8 @@ _obj_det_cfg = {
         'EfficientNetV2M',
         'EfficientNetV2L',
         'YOLOv5',
-        'YOLOv7'
+        'YOLOv7',
+        'YOLO_ZSD'
     },
     'model_cfg':
     {
@@ -276,13 +277,47 @@ _obj_det_cfg = {
             'save_period': -1,
             'local_rank': -1,
             'v5_metric': False
+        },
+        'YOLO_ZSD': {
+            'config_name': 'YOLOv5',
+            'arch': 'yolov5',
+            'backend': 'pytorch',
+            'weights': 'yolov5s.pt',
+            'imgsz': 640,
+            'cfg': '',
+            'hyp': 'data/hyps/hyp.scratch-med.yaml',
+            'rect': False,
+            'resume': False,
+            'nosave': False,
+            'noval': False,
+            'noautoanchor': False,
+            'noplots': False,
+            'evolve': False,
+            'cache': '',
+            'image_weights': False,
+            'multi_scale': False,
+            'single_cls': False,
+            'optimizer': 'SGD',
+            'sync_bn': False,
+            'workers': 8,
+            'project': 'runs/train',
+            'name': 'yolov5s',
+            'exist_ok': False,
+            'quad': False,
+            'cos_lr': False,
+            'label_smoothing': 0.0,
+            'patience': 100,
+            'freeze': [0],
+            'save_period': -1,
+            'seed': 0,
         }
     },
     'model_settings':
     {
         'default_models': ['MobileNetV2', 'EfficientNetB3'],
         'light_models': ['YOLOv5', 'MobileNetV2'],
-        'large_models': ['YOLOv7Large']
+        'large_models': ['YOLOv7Large'],
+        'zero_shot_models': ['YOLO_ZSD']
     }
 }
 

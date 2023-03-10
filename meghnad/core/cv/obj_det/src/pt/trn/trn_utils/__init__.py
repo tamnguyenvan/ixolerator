@@ -19,6 +19,10 @@ def get_train_pipeline(arch: str) -> Callable:
     elif arch == 'yolov7':
         from meghnad.core.cv.obj_det.src.pt.trn.trn_utils.trn_utils_v7 import train as trn_yolov7
         return trn_yolov7
+    elif arch == 'yolo_zsd':
+        from meghnad.core.cv.obj_det.src.pt.trn.trn_utils.trn_utils_zsd import train as trn_yolo_zsd
+    else:
+        raise ValueError(f'Not supported arch: {arch}')
 
 
 @class_header(description='''Config object.''')

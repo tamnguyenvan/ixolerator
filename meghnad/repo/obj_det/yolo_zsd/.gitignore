@@ -1,0 +1,7 @@
+__pycache__
+runs
+weights/*
+wandb
+embeddings/*
+data/*
+.ipynb_checkpoints
